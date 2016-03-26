@@ -1,0 +1,1 @@
+# TalkDesk-Real-Time-Pause-States
