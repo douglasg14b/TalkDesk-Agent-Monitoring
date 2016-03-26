@@ -300,7 +300,8 @@ function Main(){
 	                }
 	                 
 	                statuses.usersHash[user].timeInStatus = diff;
-	                statuses.usersHash[user].hue = hue;            		
+	                statuses.usersHash[user].hue = hue;       
+	                statuses.usersHash[user].level = level;
             	}
             }
         };
