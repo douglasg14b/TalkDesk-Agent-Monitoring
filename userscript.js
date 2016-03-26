@@ -20,8 +20,8 @@ var exampleUser = {
 })();
 
 function Main(){
+    
             //All the HTML that needs to be inserted
-            
             $('body').prepend(
             '<div id="userStatuses" title="{{statuses.statusList[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
@@ -308,14 +308,9 @@ function Main(){
     
     //Angular controller for the app
     statusesApp.controller("statusesAppController", ["$scope", "Statuses", function($scope, Statuses){
-        console.info("Got into controller");
-        $scope.followupUsers = {};
-        $scope.idHash = {};
-        
         $scope.statuses = Statuses;
         
         $scope.hideMatchingText = "Nothing";
-        $scope.highestFollowup = 180;
         
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
