@@ -1,3 +1,5 @@
+/*eslint-env browser, jquery*/
+/*globals angular */
 var exampleUser = {
     id:"",
     name:"",
@@ -16,7 +18,6 @@ var exampleUser = {
     document.body.appendChild(script);  
     
     window.setTimeout(Main, 5000);
-
 })();
 
 function Main(){
@@ -284,27 +285,29 @@ function Main(){
         };
         
         statuses.CalculateStatusTimes = function(){
-            for(user in statuses.usersHash){
-                var startMs = new Date(statuses.usersHash[user].timeChanged).getTime();
-                var nowMs = new Date().getTime();
-                var diff = (nowMs - startMs);
-                var hue = 110;
-                var level = statuses.statusList[statuses.usersHash[user].currentStatus].color?'88%':'100%';
-                try{
-                hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusList[statuses.usersHash[user].currentStatus].maxTime))), 0);
-                }
-                catch(e){
-                    console.error("Unable To find status's maxTime: " + statuses.usersHash[user].currentStatus, e);
-                }
-                 
-                statuses.usersHash[user].timeInStatus = diff;
-                statuses.usersHash[user].hue = hue;
+            for(var user in statuses.usersHash){
+            	if(statuses.usersHash.hasOwnProperty(user)){
+	                var startMs = new Date(statuses.usersHash[user].timeChanged).getTime();
+	                var nowMs = new Date().getTime();
+	                var diff = (nowMs - startMs);
+	                var hue = 110;
+	                var level = statuses.statusList[statuses.usersHash[user].currentStatus].color?'88%':'100%';
+	                try{
+	                hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusList[statuses.usersHash[user].currentStatus].maxTime))), 0);
+	                }
+	                catch(e){
+	                    console.error("Unable To find status's maxTime: " + statuses.usersHash[user].currentStatus, e);
+	                }
+	                 
+	                statuses.usersHash[user].timeInStatus = diff;
+	                statuses.usersHash[user].hue = hue;            		
+            	}
             }
         };
         
         return statuses;
         
-    })
+    });
     
     //Angular controller for the app
     statusesApp.controller("statusesAppController", ["$scope", "Statuses", function($scope, Statuses){
@@ -342,22 +345,13 @@ function Main(){
         
         //Sets the timer for when times are recalcualted, 500ms at the moment
         $scope.SetupTimer = function(){
-            localScope = $scope;
+            var localScope = $scope;
             setInterval(function(){localScope.statuses.CalculateStatusTimes(); localScope.$apply();}, 500);
         }
         
         $scope.SetupAJAXHandler(XMLHttpRequest.prototype.open);
         $scope.SetupTimer();
     }]);
-    
-    statusesApp.directive('selectStatus', 'Statuses', function(Statuses){
-        var link = function(scope, element, attrs){
-            element.bind('click', function(){
-                Statuses.selectedStatus = Statuses.statusList[attrs.id];
-                scope.$parent.$apply();
-            })
-        }
-    });
     
     //Converts an associative array to an array https://github.com/petebacondarwin/angular-toArrayFilter
     statusesApp.filter('toArray', function () {
