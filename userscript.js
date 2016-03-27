@@ -1,6 +1,9 @@
 /*eslint-env browser, jquery*/
 /*globals angular */
 
+/*eslint-env browser, jquery*/
+/*globals angular */
+
 // ==UserScript==
 // @name         TalkDesk Real Time Statuses 2
 // @namespace    http://tampermonkey.net/
@@ -139,7 +142,8 @@ var config = {
 };
 
 function Main(){
-            //All the HTML that needs to be inserted
+    
+            //All the HTML that needs to be inserted into the DOM     
             $('body').prepend(
             '<div id="userStatuses" title="{{statuses.statusHash[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
@@ -150,7 +154,7 @@ function Main(){
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in statuses.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
@@ -177,19 +181,75 @@ function Main(){
                     active: false,
                     icons: false
                 });
+    
+    //Primary Angular module
     var statusesApp = angular.module("statusesApp", []);
-    statusesApp.factory('Statuses', function(){
+    
+    //Factory managing the users themselves
+    statusesApp.factory("Users", function(){
+        var users = {};
+        users.currentUser = {};
+        users.usersHash = {};
+        
+        //Called to setup all users, users from TalkDesk model passed in
+        users.SetAllUsers = function(usersArray){
+            for(var i = 0; i < usersArray.length; i++){
+                var newUser = {
+                    id: usersArray[i].id,
+                    name: usersArray[i].attributes.name,
+                    currentStatus: usersArray[i].attributes.status,
+                    timeChanged: usersArray[i].attributes.updated_at,
+                    timeInStatus:0,
+                    hue: 110,
+                    level: '88%'
+                };
+            }
+        }
+        
+        //Sets the current user from the TalkDesk model
+        users.SetCurrentUser = function(newUser){
+            users.currentUser.id = newUser.id;
+            users.currentUser.name = newUser.attributes.name;
+            users.canAccessAdmin = newUser.attributes.permissions_profile.admin.accessible;
+        }
+        
+        //Adds a new suer to the hash, should almost never be used
+        users.NewUser = function(requestObject){
+            var newUser = {
+                id: requestObject._id,
+                name: requestObject.name,
+                currentStatus: requestObject.status,
+                timeChanged: requestObject.updated_at,
+                timeInStatus:0,
+                hue: 110,
+                level: '88%'
+            };
+            users.usersHash[requestObject._id] = newUser;
+        }
+        
+        users.UpdateUserStatus = function(userId, requestObject){
+            users.usersHash[userId].currentStatus = requestObject.status;
+            users.usersHash[requestObject._id].timeChanged = requestObject.updated_at;
+            users.usersHash[requestObject._id].timeInStatus = 0;
+        }
+        
+        return users;
+    });
+    
+    //Service managing everything status related
+    statusesApp.factory('Statuses',["Users", function(users){
         var statuses = {};
         statuses.selectedStatus = 'after_call_work';
         statuses.statusArray = [];
         statuses.statusHash = {};
 
+        //Sets up the statuses based on the models statuses and the config
         statuses.setStatuses = function(statusesObject, statusesConfig){
             for(var status in statusesObject){
                 if(statusesConfig.hasOwnProperty(status)){
                     var statusToPush = statusesConfig[status];
                     statusToPush.id = status;                  //Necessary to use the real ID of the status instead of the config id
-                    statuses.statusArray.push(statusToPush);
+                    statuses.statusArray.push(statusToPush);   //Pushing the config status instead of the defaults
                     statuses.statusHash[status] = statusesConfig[status];
                 }
                 else{
@@ -203,57 +263,48 @@ function Main(){
 
         statuses.ProcessStatusChange = function(requestObject){
             //If user exists in hash already
-            if(typeof statuses.usersHash[requestObject._id] !== 'undefined'){
-                if(statuses.usersHash[requestObject._id].currentStatus != requestObject.status){
-                    statuses.usersHash[requestObject._id].currentStatus = requestObject.status;
-                    statuses.usersHash[requestObject._id].timeChanged = requestObject.updated_at;
-                    statuses.usersHash[requestObject._id].timeInStatus = 0;
+            if(typeof users.usersHash[requestObject._id] !== 'undefined'){
+                if(users.usersHash[requestObject._id].currentStatus != requestObject.status){
+                    users.UpdateUserStatus(requestObject._id, requestObject);
                 }
             }
             //If user does not exist in hash, add them and process approprietly
             else{
-                var newUser = {
-                    id: requestObject._id,
-                    name: requestObject.name,
-                    currentStatus: requestObject.status,
-                    timeChanged: requestObject.updated_at,
-                    timeInStatus:0,
-                    hue: 110,
-                    level: '88%'
-                };
-                statuses.usersHash[requestObject._id] = newUser;
+                users.NewUser(requestObject);
                 console.info("Added new user to hash");
-                console.info(statuses.usersHash);
             }
         };
 
+        //Processes all users times, called periodically to regularly update
         statuses.CalculateStatusTimes = function(statusConfig){
-            for(var user in statuses.usersHash){
-            	if(statuses.usersHash.hasOwnProperty(user)){
-	                var startMs = new Date(statuses.usersHash[user].timeChanged).getTime();
-	                var nowMs = new Date().getTime();
-	                var diff = (nowMs - startMs);
-	                var hue = 110;
-	                var level = statusConfig[statuses.usersHash[user].currentStatus].color?'88%':'100%';
-	                try{
-	                hue = Math.max(110 - Math.abs((diff/1000*(110/statusConfig[statuses.usersHash[user].currentStatus].maxTime))), 0);
-	                }
-	                catch(e){
-	                    console.error("Unable To find status's maxTime: " + statuses.usersHash[user].currentStatus, e);
-	                }
+            for(var user in users.usersHash){
+            	if(users.usersHash.hasOwnProperty(user)){
+                    var timeData = statuses.CalculateStatusTime(statusConfig, user);
 
-	                statuses.usersHash[user].timeInStatus = diff;
-	                statuses.usersHash[user].hue = hue;
-	                statuses.usersHash[user].level = level;
+	                users.usersHash[user].timeInStatus = timeData.diff;
+	                users.usersHash[user].hue = timeData.hue;
+	                users.usersHash[user].level = timeData.level;
             	}
             }
         };
+        
+        //Calculates the time data for a single user
+        statuses.CalculateStatusTime = function(statusConfig, user){
+            var startMs = new Date(users.usersHash[user].timeChanged).getTime();
+            var nowMs = new Date().getTime();
+            var diff = (nowMs - startMs);
+            var hue = 110;
+            var level = statusConfig[users.usersHash[user].currentStatus].color?'88%':'100%';
+            hue = Math.max(110 - Math.abs((diff/1000*(110/statusConfig[users.usersHash[user].currentStatus].maxTime))), 0);
+            return {diff: diff, hue: hue, level: level};            
+        }
         return statuses;
-    });
+    }]);
 
     //Angular controller for the app
-    statusesApp.controller("statusesAppController", ["$scope", "Statuses", function($scope, Statuses){
+    statusesApp.controller("statusesAppController", ["$scope", "Statuses", "Users", function($scope, Statuses, Users){
         $scope.statuses = Statuses;
+        $scope.users = Users;
 
         $scope.config = config;
         $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status, $scope.config.statusConfig);
