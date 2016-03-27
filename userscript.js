@@ -141,7 +141,7 @@ var config = {
 function Main(){
             //All the HTML that needs to be inserted
             $('body').prepend(
-            '<div id="userStatuses" title="{{config.statusConfig[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
+            '<div id="userStatuses" title="{{statuses.statusHash[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
@@ -150,7 +150,7 @@ function Main(){
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in statuses.usersHash | toArray | filter:{currentStatus: config.statusConfig[statuses.selectedStatus].id} : statuses.statusList[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in statuses.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
@@ -187,7 +187,9 @@ function Main(){
         statuses.setStatuses = function(statusesObject, statusesConfig){
             for(var status in statusesObject){
                 if(statusesConfig.hasOwnProperty(status)){
-                    statuses.statusArray.push(statusesConfig[status]);
+                    var statusToPush = statusesConfig[status];
+                    statusToPush.id = status;                  //Necessary to use the real ID of the status instead of the config id
+                    statuses.statusArray.push(statusToPush);
                     statuses.statusHash[status] = statusesConfig[status];
                 }
                 else{
@@ -202,9 +204,11 @@ function Main(){
         statuses.ProcessStatusChange = function(requestObject){
             //If user exists in hash already
             if(typeof statuses.usersHash[requestObject._id] !== 'undefined'){
-                statuses.usersHash[requestObject._id].currentStatus = requestObject.status;
-                statuses.usersHash[requestObject._id].timeChanged = requestObject.updated_at;
-                statuses.usersHash[requestObject._id].timeInStatus = 0;
+                if(statuses.usersHash[requestObject._id].currentStatus != requestObject.status){
+                    statuses.usersHash[requestObject._id].currentStatus = requestObject.status;
+                    statuses.usersHash[requestObject._id].timeChanged = requestObject.updated_at;
+                    statuses.usersHash[requestObject._id].timeInStatus = 0;
+                }
             }
             //If user does not exist in hash, add them and process approprietly
             else{
