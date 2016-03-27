@@ -154,7 +154,7 @@ function Main(){
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
@@ -310,7 +310,7 @@ function Main(){
         $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status, $scope.config.statusConfig);
         $scope.users.SetAllUsers(App.Vars.agents.models);
 
-        $scope.hideMatchingText = "Nothing";
+        $scope.hideMatchingText = "";
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
             console.info("inside request event handler");
@@ -413,6 +413,40 @@ function Main(){
         return items;
       };
     });
+
+    //Filters out multiple values from a string using '|' as a delimiter
+    statusesApp.filter('negativeSplitFilter', ['$filter', function($filter){
+        return function(items, filterString){
+            console.info('Filter String: ' + filterString);
+            if(filterString != ''){
+                var output = [];
+                var filterValues = filterString.split('|');
+                for(var i = 0; i < filterValues.length; i++){
+                    if(filterValues[i] != ''){
+                        filterValues[i] = filterValues[i].trim();
+                    }else{
+                        filterValues.splice(i, 1);
+                    }
+                }
+
+                angular.forEach(items, function(item){
+                    var match = false;
+                    angular.forEach(item, function(key, value){
+                        for(var  i =0; i < filterValues.length; i++){
+                            if(String(key).includes(filterValues[i])){
+                                match = true;
+                            }
+                        }
+                    });
+                    if(!match){
+                        output.push(item);
+                    }
+                });
+                return output;
+            }
+            return items;
+        };
+    }]);
 
     angular.bootstrap($('#userStatuses').parent(), ['statusesApp']);
 }
