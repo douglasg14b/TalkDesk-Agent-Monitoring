@@ -1,17 +1,18 @@
 /*eslint-env browser, jquery*/
 /*globals angular */
-var exampleUser = {
-    id:"",
-    name:"",
-    currentStatus:"",
-    timeChanged:"",
-    timeInStatus:0,
-    hue: 110
-};
 
+// ==UserScript==
+// @name         TalkDesk Real Time Statuses 2
+// @namespace    http://tampermonkey.net/
+// @version      0.1
+// @description  realtime TalkDesk statuses
+// @author       Douglas Gaskell
+// @match        https://*.mytalkdesk.com/*
+// @grant        none
+// ==/UserScript==
 
-
-
+(function() {
+    'use strict';
 (function AddLibraries(){
     var script = document.createElement("script");
     script.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js");
@@ -19,118 +20,9 @@ var exampleUser = {
     window.setTimeout(Main, 5000);
 })();
 
-function Main(){
-            //All the HTML that needs to be inserted
-            $('body').prepend(
-            '<div id="userStatuses" title="{{statuses.statusList[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
-                '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
-                    '<thead>'+
-                        '<tr>'+
-                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
-                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time (s)</th>'+
-                        '</tr>'+
-                    '</thead>'+
-                    '<tbody>'+
-                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in statuses.usersHash | toArray | filter:{currentStatus: statuses.statusList[statuses.selectedStatus].id} : statuses.statusList[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
-                        '</tr>'+
-                    '</tbody>'+
-                '</table></div>' );
-                $('#userStatuses').dialog();
-                $('#userStatuses').parent().attr("ng-app", "statusesApp");
-                $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
-                $('#userStatuses').parent().append(
-                    '<div style="color: white;" id="settingsAccordian">'+
-                        '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
-                        '<div style="background: #303941;">'+
-                            '<select ng-model="statuses.selectedStatus">'+
-                                '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.simpleStatusList | unique:\'name\'">{{status.name}}</option>'+
-                            '</select>'+
-                            '<label for="hideMatching">Hide Matching:</label>'+
-                            '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: 40%; font-size: 1em; display:inline-block;">'+
-                            '<label for="hideMatching">Highest {{statuses.statusList[statuses.selectedStatus].name}} Permitted (s)</label>'+
-                            '<input type="number" ng-model="statuses.statusList[statuses.selectedStatus].maxTime" id="hideMatching" style="width: 40%; font-size: 1em;">'+
-                        '</div>'+
-                    '</div>');
-                $('#settingsAccordian').accordion({
-                    collapsible: true,
-                    active: false,
-                    icons: false
-                });
-    var statusesApp = angular.module("statusesApp", []);
-    statusesApp.factory('Statuses', function(){
-        var statuses = {};
-        statuses.selectedStatus = 'after_call_work';
-        //Simple array for filtering/displaying
-        statuses.simpleStatusList = [
-            {
-                name:"Available",
-                id:"available",
 
-            },
-            {
-                name:"Followup",
-                id:"after_call_work",
-            },
-            {
-                name:"HQ Shift Lead",
-                id:"busy_hq-shiftlead",
-            },
-            {
-                name:"HQ MC/Texts",
-                id:"busy_hq-mctexts",
-            },
-            {
-                name:"Dasher Chat",
-                id:"busy_dasherchat",
-            },
-            {
-                name:"Customer Emails",
-                id:"busy_customeremails",
-            },
-            {
-                name:"Dasher Emails",
-                id:"busy_dasheremails",
-            },
-            {
-                name:"On a Call",
-                id:"busy",
-            },
-            {
-                name:"Login Prep",
-                id:"away",
-            },
-            {
-                name:"Break",
-                id:"away_break1",
-            },
-            {
-                name:"Break",
-                id:"away_break2",
-            },
-            {
-                name:"Break",
-                id:"away_break3",
-            },
-            {
-                name:"Lunch",
-                id: "away_lunch",
-            },
-            {
-                name:"Non-Billable",
-                id:"away_nonbillable",
-            },
-            {
-                name:"Feedback/Coaching/Meeting",
-                id: "away_feedbackcoachingmeeting",
-            },
-            {
-                name:"Offline",
-                id:"offline",
-            }
-        ];
-        statuses.statusList = {
+var config = {
+    statusConfig: {
             'available':{
                 name:"Available",
                 id:"available",
@@ -243,8 +135,70 @@ function Main(){
                 exactMatch: true,
                 maxTime: -1
             }
+    }
+};
+
+function Main(){
+            //All the HTML that needs to be inserted
+            $('body').prepend(
+            '<div id="userStatuses" title="{{config.statusConfig[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
+                '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
+                    '<thead>'+
+                        '<tr>'+
+                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
+                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time (s)</th>'+
+                        '</tr>'+
+                    '</thead>'+
+                    '<tbody>'+
+                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in statuses.usersHash | toArray | filter:{currentStatus: config.statusConfig[statuses.selectedStatus].id} : statuses.statusList[statuses.selectedStatus].exactMatch | filter: \'!\' + hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
+                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                        '</tr>'+
+                    '</tbody>'+
+                '</table></div>' );
+                $('#userStatuses').dialog();
+                $('#userStatuses').parent().attr("ng-app", "statusesApp");
+                $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
+                $('#userStatuses').parent().append(
+                    '<div style="color: white;" id="settingsAccordian">'+
+                        '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
+                        '<div style="background: #303941;">'+
+                            '<select ng-model="statuses.selectedStatus">'+
+                                '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
+                            '</select>'+
+                            '<label for="hideMatching">Hide Matching:</label>'+
+                            '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: 40%; font-size: 1em; display:inline-block;">'+
+                            '<label for="hideMatching">Highest {{statuses.statusList[statuses.selectedStatus].name}} Permitted (s)</label>'+
+                            '<input type="number" ng-model="statuses.statusList[statuses.selectedStatus].maxTime" id="hideMatching" style="width: 40%; font-size: 1em;">'+
+                        '</div>'+
+                    '</div>');
+                $('#settingsAccordian').accordion({
+                    collapsible: true,
+                    active: false,
+                    icons: false
+                });
+    var statusesApp = angular.module("statusesApp", []);
+    statusesApp.factory('Statuses', function(){
+        var statuses = {};
+        statuses.selectedStatus = 'after_call_work';
+        statuses.statusArray = [];
+        statuses.statusHash = {};
+
+        statuses.setStatuses = function(statusesObject, statusesConfig){
+            for(var status in statusesObject){
+                if(statusesConfig.hasOwnProperty(status)){
+                    statuses.statusArray.push(statusesConfig[status]);
+                    statuses.statusHash[status] = statusesConfig[status];
+                }
+                else{
+                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, exactMatch: true, maxTime: -1});
+                    statuses.statusHash[status] = statusesObject[status];
+                }
+            }
         };
         statuses.usersHash = {};
+
+
         statuses.ProcessStatusChange = function(requestObject){
             //If user exists in hash already
             if(typeof statuses.usersHash[requestObject._id] !== 'undefined'){
@@ -269,16 +223,16 @@ function Main(){
             }
         };
 
-        statuses.CalculateStatusTimes = function(){
+        statuses.CalculateStatusTimes = function(statusConfig){
             for(var user in statuses.usersHash){
             	if(statuses.usersHash.hasOwnProperty(user)){
 	                var startMs = new Date(statuses.usersHash[user].timeChanged).getTime();
 	                var nowMs = new Date().getTime();
 	                var diff = (nowMs - startMs);
 	                var hue = 110;
-	                var level = statuses.statusList[statuses.usersHash[user].currentStatus].color?'88%':'100%';
+	                var level = statusConfig[statuses.usersHash[user].currentStatus].color?'88%':'100%';
 	                try{
-	                hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusList[statuses.usersHash[user].currentStatus].maxTime))), 0);
+	                hue = Math.max(110 - Math.abs((diff/1000*(110/statusConfig[statuses.usersHash[user].currentStatus].maxTime))), 0);
 	                }
 	                catch(e){
 	                    console.error("Unable To find status's maxTime: " + statuses.usersHash[user].currentStatus, e);
@@ -296,6 +250,10 @@ function Main(){
     //Angular controller for the app
     statusesApp.controller("statusesAppController", ["$scope", "Statuses", function($scope, Statuses){
         $scope.statuses = Statuses;
+
+        $scope.config = config;
+        $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status, $scope.config.statusConfig);
+
         $scope.hideMatchingText = "Nothing";
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
@@ -327,8 +285,7 @@ function Main(){
 
         //Sets the timer for when times are recalcualted, 500ms at the moment
         $scope.SetupTimer = function(){
-            var localScope = $scope;
-            setInterval(function(){localScope.statuses.CalculateStatusTimes(); localScope.$apply();}, 500);
+            setInterval(function(){$scope.statuses.CalculateStatusTimes($scope.config.statusConfig); $scope.$apply();}, 500);
         };
 
         $scope.SetupAJAXHandler(XMLHttpRequest.prototype.open);
@@ -403,3 +360,4 @@ function Main(){
 
     angular.bootstrap($('#userStatuses').parent(), ['statusesApp']);
 }
+})();
