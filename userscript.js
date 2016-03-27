@@ -172,8 +172,8 @@ function Main(){
                             '</select>'+
                             '<label for="hideMatching">Hide Matching:</label>'+
                             '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: 40%; font-size: 1em; display:inline-block;">'+
-                            '<label for="hideMatching">Highest {{statuses.statusList[statuses.selectedStatus].name}} Permitted (s)</label>'+
-                            '<input type="number" ng-model="statuses.statusList[statuses.selectedStatus].maxTime" id="hideMatching" style="width: 40%; font-size: 1em;">'+
+                            '<label for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
+                            '<input type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: 40%; font-size: 1em;">'+
                         '</div>'+
                     '</div>');
                 $('#settingsAccordian').accordion({
