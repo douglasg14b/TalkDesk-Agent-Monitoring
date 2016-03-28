@@ -11,7 +11,7 @@
 // @grant        none
 // ==/UserScript==
 
-(function() {
+$(function() {
     'use strict';
 (function AddLibraries(){
     var script1 = document.createElement("script");
@@ -24,7 +24,7 @@
 
     var style = document.createElement("style");
     style.type = 'text/css';
-    style.appendChild(document.createTextNode('.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important;}'));
+    style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } .ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important;}'));
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
 
@@ -169,12 +169,12 @@ function Main(){
                     '</tbody>'+
                 '</table></div>' );
                 $('#userStatuses').dialog().dialogExtend({
-                    "closable" : false,
-                    "maximizable" : false,
-                    "collapsable" : true,
-                    "dblclick" : "collapse",
-                    "minimizable" : true,
-                    "minimizeLocation" : "right"
+                    closable : false,
+                    maximizable : false,
+                    collapsable : true,
+                    dblclick : "collapse",
+                    minimizable : true,
+                    minimizeLocation : "right"
                 });
                 $('.ui-dialog-titlebar').css('position', 'relative');
                 $('#userStatuses').parent().attr("ng-app", "statusesApp");
@@ -183,13 +183,19 @@ function Main(){
                     '<div style="color: white;" id="settingsAccordian">'+
                         '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
                         '<div style="background: #303941;">'+
-                            '<select ng-model="statuses.selectedStatus">'+
-                                '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
-                            '</select>'+
-                            '<label for="hideMatching">Hide Matching:</label>'+
-                            '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: 40%; font-size: 1em; display:inline-block;">'+
-                            '<label for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
-                            '<input type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: 40%; font-size: 1em;">'+
+                            '<div style="width: 100%; font-size: 1em;">'+
+                                '<select ng-model="statuses.selectedStatus" style="width: auto;">'+
+                                    '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
+                                '</select>'+
+                            '</div>'+
+                            '<div style="width: 100%; font-size: 1em;">'+
+                                '<label for="hideMatching">Hide Matching:</label>'+
+                                '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: auto; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                            '</div>'+
+                            '<div style="width: 100%; font-size: 1em;">'+
+                                '<label ng-if="statuses.statusHash[statuses.selectedStatus].color" for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
+                                '<input ng-if="statuses.statusHash[statuses.selectedStatus].color" type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: auto;">'+
+                            '</div>'+
                         '</div>'+
                     '</div>');
                 $('#settingsAccordian').accordion({
