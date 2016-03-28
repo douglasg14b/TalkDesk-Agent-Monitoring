@@ -1,9 +1,6 @@
 /*eslint-env browser, jquery*/
 /*globals angular */
 
-/*eslint-env browser, jquery*/
-/*globals angular */
-
 // ==UserScript==
 // @name         TalkDesk Real Time Statuses 2
 // @namespace    http://tampermonkey.net/
@@ -17,9 +14,20 @@
 (function() {
     'use strict';
 (function AddLibraries(){
-    var script = document.createElement("script");
-    script.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js");
-    document.body.appendChild(script);
+    var script1 = document.createElement("script");
+    script1.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js");
+    document.body.appendChild(script1);
+
+    var script2 = document.createElement("script");
+    script2.setAttribute("src", "https://cdn.rawgit.com/ROMB/jquery-dialogextend/master/build/jquery.dialogextend.min.js");
+    document.body.appendChild(script2);
+
+    var style = document.createElement("style");
+    style.type = 'text/css';
+    style.appendChild(document.createTextNode('.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important;}'));
+    style.setAttribute("type", "text/css");
+    document.body.appendChild(style);
+
     window.setTimeout(Main, 5000);
 })();
 
@@ -160,7 +168,15 @@ function Main(){
                         '</tr>'+
                     '</tbody>'+
                 '</table></div>' );
-                $('#userStatuses').dialog();
+                $('#userStatuses').dialog().dialogExtend({
+                    "closable" : false,
+                    "maximizable" : false,
+                    "collapsable" : true,
+                    "dblclick" : "collapse",
+                    "minimizable" : true,
+                    "minimizeLocation" : "right"
+                });
+                $('.ui-dialog-titlebar').css('position', 'relative');
                 $('#userStatuses').parent().attr("ng-app", "statusesApp");
                 $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
                 $('#userStatuses').parent().append(
