@@ -256,10 +256,10 @@ function Main(){
             users.usersHash[requestObject._id] = newUser;
         };
 
-        users.UpdateUserStatus = function(userId, requestObject){
-            users.usersHash[userId].currentStatus = requestObject.status;
-            users.usersHash[requestObject._id].timeChanged = requestObject.updated_at;
-            users.usersHash[requestObject._id].timeInStatus = 0;
+        users.UpdateUserStatus = function(userId, status, updated_at ){
+            users.usersHash[userId].currentStatus = status;
+            users.usersHash[userId].timeChanged = updated_at;
+            users.usersHash[userId].timeInStatus = 0;
         };
 
         return users;
@@ -288,17 +288,22 @@ function Main(){
             }
         };
 
-        statuses.ProcessStatusChange = function(requestObject){
+        statuses.ProcessStatusChange = function(requestObject, type){
             //If user exists in hash already
-            if(typeof users.usersHash[requestObject._id] !== 'undefined'){
-                if(users.usersHash[requestObject._id].currentStatus != requestObject.status){
-                    users.UpdateUserStatus(requestObject._id, requestObject);
+            if(type == 'userInfo'){
+                if(typeof users.usersHash[requestObject._id] !== 'undefined') {
+                    if(users.usersHash[requestObject._id].currentStatus != requestObject.status){
+                        users.UpdateUserStatus(requestObject._id, requestObject.status, requestObject.updated_at);
+                    }
+                } else {
+                    users.NewUser(requestObject);
                 }
-            }
-            //If user does not exist in hash, add them and process approprietly
-            else{
-                users.NewUser(requestObject);
-                console.info("Added new user to hash");
+            }else if(type == 'callInfo'){
+                if(typeof users.usersHash[requestObject.user_id] !== 'undefined') {
+                    if(users.usersHash[requestObject.user_id].currentStatus != 'busy'){
+                        users.UpdateUserStatus(requestObject.user_id, 'busy', requestObject.answered_at);
+                    }
+                }
             }
         };
 
@@ -356,8 +361,12 @@ function Main(){
                            }
                             if(typeof responseObject._id != 'undefined'){
                                 if(typeof responseObject.status != 'undefined'){
-                                    $scope.statuses.ProcessStatusChange(responseObject);
+                                    $scope.statuses.ProcessStatusChange(responseObject, 'userInfo');
                                     console.info("New Valid Request");
+                                }else if(typeof responseObject.callsid != 'undefined'){
+                                    $scope.statuses.ProcessStatusChange(responseObject, 'callInfo');
+                                    console.info('Response Object');
+                                    console.info(responseObject);
                                 }
                             }
                         }
