@@ -11,9 +11,8 @@
 // @grant        none
 // ==/UserScript==
 
-$(function() {
+$(document).ready(function() {
     'use strict';
-
 (function AddLibraries(){
     var script1 = document.createElement("script");
     script1.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js");
@@ -375,6 +374,7 @@ function Main(){
 
         $scope.Unload = function(){
             $(window).unload(function(){
+                console.debug($scope.users.currentUser.id);
                 $.ajax({
                     url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
                     type: 'PUT',
@@ -502,4 +502,4 @@ function Sleep(milliseconds) {
    while (currentTime + miliseconds >= new Date().getTime()) {
    }
 }
-})();
+});
