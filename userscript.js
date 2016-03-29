@@ -13,6 +13,7 @@
 
 $(function() {
     'use strict';
+
 (function AddLibraries(){
     var script1 = document.createElement("script");
     script1.setAttribute("src", "https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js");
@@ -153,18 +154,23 @@ function Main(){
 
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
-            '<div id="userStatuses" title="{{statuses.statusHash[statuses.selectedStatus].name}} Timers" style="overflow-y:auto;">'+
+            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
-                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
-                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time (s)</th>'+
+                            '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
+                            '<th ng-if="!users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Status</th>'+
+                            '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time</th>'+
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
                             '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                        '</tr>'+
+                        '<tr ng-if="!users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})">'+
+                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}}</td>'+
+                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{users.usersHash[users.currentUser.id].timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                     '</tbody>'+
                 '</table></div>' );
@@ -183,16 +189,16 @@ function Main(){
                     '<div style="color: white;" id="settingsAccordian">'+
                         '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
                         '<div style="background: #303941;">'+
-                            '<div style="width: 100%; font-size: 1em;">'+
+                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
                                 '<select ng-model="statuses.selectedStatus" style="width: auto;">'+
                                     '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
                                 '</select>'+
                             '</div>'+
-                            '<div style="width: 100%; font-size: 1em;">'+
+                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
                                 '<label for="hideMatching">Hide Matching:</label>'+
                                 '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: auto; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                             '</div>'+
-                            '<div style="width: 100%; font-size: 1em;">'+
+                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
                                 '<label ng-if="statuses.statusHash[statuses.selectedStatus].color" for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
                                 '<input ng-if="statuses.statusHash[statuses.selectedStatus].color" type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: auto;">'+
                             '</div>'+
@@ -234,7 +240,7 @@ function Main(){
         users.SetCurrentUser = function(newUser){
             users.currentUser.id = newUser.id;
             users.currentUser.name = newUser.attributes.name;
-            users.canAccessAdmin = newUser.attributes.permissions_profile.admin.accessible;
+            users.currentUser.canAccessAdmin = newUser.attributes.permissions_profile.admin.accessible;
         };
 
         //Adds a new suer to the hash, should almost never be used
@@ -331,6 +337,7 @@ function Main(){
         $scope.config = config;
         $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status, $scope.config.statusConfig);
         $scope.users.SetAllUsers(App.Vars.agents.models);
+        $scope.users.SetCurrentUser(App.Vars.agent);
 
         $scope.hideMatchingText = "";
         //The handler for AJAX requests
@@ -366,8 +373,24 @@ function Main(){
             setInterval(function(){$scope.statuses.CalculateStatusTimes($scope.config.statusConfig); $scope.$apply();}, 500);
         };
 
+        $scope.Unload = function(){
+            $(window).unload(function(){
+                $.ajax({
+                    url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
+                    type: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    async: false,
+                    timeout: 250,
+                    data: '{"user":{"status":"offline","status_change":true,"reason":"automated"}}'
+                });
+            });
+        };
+
         $scope.SetupAJAXHandler(XMLHttpRequest.prototype.open);
         $scope.SetupTimer();
+        $scope.Unload();
     }]);
 
     //Converts an associative array to an array https://github.com/petebacondarwin/angular-toArrayFilter
@@ -471,5 +494,12 @@ function Main(){
     }]);
 
     angular.bootstrap($('#userStatuses').parent(), ['statusesApp']);
+}
+
+function Sleep(milliseconds) {
+   var currentTime = new Date().getTime();
+
+   while (currentTime + miliseconds >= new Date().getTime()) {
+   }
 }
 })();
