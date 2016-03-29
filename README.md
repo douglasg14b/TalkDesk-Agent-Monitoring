@@ -18,7 +18,7 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 * Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection *(Implemented, but not configurable yet)*
 
 **New Behavior:**
-* When TalkDesk is closed, it will put the user's status into `Offline`. *(Not configurable yet)*
+* When TalkDesk is closed, it will put the user's status into `Offline`. *(Implemented, but not configurable yet)*
 * Can change the status of users right from the widget instead of having to navigating to the admin panel *(Not yet implemented)*
 
 #### Views
