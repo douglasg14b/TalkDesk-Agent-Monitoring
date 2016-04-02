@@ -22,9 +22,19 @@ $(document).ready(function() {
     script2.setAttribute("src", "https://cdn.rawgit.com/ROMB/jquery-dialogextend/master/build/jquery.dialogextend.min.js");
     document.body.appendChild(script2);
 
+    var fontAwesome = document.createElement("link");
+    fontAwesome.type = 'test/css';
+    fontAwesome.setAttribute("rel", "stylesheet");
+    fontAwesome.setAttribute('src', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
+
     var style = document.createElement("style");
     style.type = 'text/css';
-    style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } .ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important;}'));
+    style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } '+
+                                              '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
+                                              '.statusSettingsAccordion h3.ui-accordion-header {border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
+                                              '.statusSettingsAccordion div.ui-accordion-content {background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D; height: auto;}'+
+                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'
+                                             ));
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
 
@@ -173,7 +183,10 @@ function Main(){
                         '</tr>'+
                     '</tbody>'+
                 '</table></div>' );
-                $('#userStatuses').dialog().dialogExtend({
+                $('#userStatuses').dialog({
+                    resize: function(event, ui){
+                    }
+                }).dialogExtend({
                     closable : false,
                     maximizable : false,
                     collapsable : true,
@@ -184,7 +197,7 @@ function Main(){
                 $('.ui-dialog-titlebar').css('position', 'relative');
                 $('#userStatuses').parent().attr("ng-app", "statusesApp");
                 $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
-                $('#userStatuses').parent().append(
+                /*$('#userStatuses').parent().append(
                     '<div style="color: white;" id="settingsAccordian">'+
                         '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
                         '<div style="background: #303941;">'+
@@ -202,12 +215,51 @@ function Main(){
                                 '<input ng-if="statuses.statusHash[statuses.selectedStatus].color" type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: auto;">'+
                             '</div>'+
                         '</div>'+
-                    '</div>');
-                $('#settingsAccordian').accordion({
+                    '</div>');*/
+                /*$('#userStatuses').parent().append('<div class="horizontalSlideOut" style="position: absolute;width: 150px; height: 100%; top:0px; background: #303941; right: -150px;"> Stuff And Stuff'+
+                                                       '<div class="statusSettingsAccordion">'+
+                                                           '<div class="panel-group">'+
+                                                               '<div ng-repeat="status in statuses.statusArray" class="panel panel-default">'+
+                                                                   '<div class="panel-heading">'+
+                                                                       '<h4 class="panel-title">'+
+                                                                           '<a data-toggle="collapse" href="#settingsCollapse{{$index}}">{{status.name}}</a>'+
+                                                                       '</h4>'+
+                                                                   '</div>'+
+                                                                   '<div id="settingsCollapse{{$index}}" class="panel-collapse collapse in">'+
+                                                                       '<div class="panel-body">{{status.id}}</div>'+
+                                                                   '</div>'+
+                                                               '</div>'+
+                                                           '</div>'+
+                                                           '<h3 ng-repeat-start="status in statuses.statusArray">{{status.name}}</h3>'+
+                                                           '<div ng-repeat-end>{{status.id}}</div>'+
+                                                       '<div>'+
+                                                   '</div>');*/
+                $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="position: absolute;width: 200px; height: 100%; top:0px; background: #303941; right: -200px; overflow-y:auto; overflow-x:hide;">'+
+                                                       '<div class="statusSettingsAccordion">'+
+                                                           '<h3 ng-repeat-start="status in statuses.statusArray">{{status.name}}</h3>'+
+                                                           '<div ng-repeat-end>{{status}}'+
+                                                               '<div>'+
+                                                               '</div>'+
+                                                           '</div>'+
+                                                       '<div>'+
+                                                   '</div>');
+                $('#userStatuses').parent().append('<div id="userStatusesSettingsBtn" class="btn btn-info">Settings</div>');
+                window.setTimeout(function(){
+                    $('.statusSettingsAccordion').accordion({
+                        collapsible: true,
+                        active: false,
+                        icons: false
+                    });
+                }, 1000);
+                $('#userStatusesSettingsBtn').click(function(){
+                    $('.horizontalSlideOut').toggle('slide', {}, 400);
+                });
+
+                /*$('#settingsAccordian').accordion({
                     collapsible: true,
                     active: false,
                     icons: false
-                });
+                });*/
 
     //Primary Angular module
     var statusesApp = angular.module("statusesApp", []);
@@ -346,27 +398,28 @@ function Main(){
         $scope.hideMatchingText = "";
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
-            console.info("inside request event handler");
+
             XMLHttpRequest.prototype.open = function() {
                 this.addEventListener("readystatechange", function() {
-                    if(this.responseText != null)
+                    if(this.readyState == 4)
                     {
-                        if(typeof this.responseText != 'undefined' && this.responseText != ""){
+                        var xmlResponseText = this.responseText;
+                        if(typeof xmlResponseText != 'undefined' && xmlResponseText != ""){
                             var responseObject = {};
                             try{
-                                responseObject = JSON.parse(this.responseText);
+                                responseObject = JSON.parse(xmlResponseText);
                             }
                             catch(e) {
+                                console.error(e);
+                                console.error(xmlResponseText);
+                                console.error(xmlResponseText);
                                 console.error("JSON Parse Failed");
                            }
                             if(typeof responseObject._id != 'undefined'){
                                 if(typeof responseObject.status != 'undefined'){
                                     $scope.statuses.ProcessStatusChange(responseObject, 'userInfo');
-                                    console.info("New Valid Request");
                                 }else if(typeof responseObject.callsid != 'undefined'){
                                     $scope.statuses.ProcessStatusChange(responseObject, 'callInfo');
-                                    console.info('Response Object');
-                                    console.info(responseObject);
                                 }
                             }
                         }
@@ -374,6 +427,7 @@ function Main(){
                 }, false);
                 open.apply(this, arguments);
             };
+
         };
 
         //Sets the timer for when times are recalcualted, 500ms at the moment
@@ -383,7 +437,6 @@ function Main(){
 
         $scope.Unload = function(){
             $(window).unload(function(){
-                console.debug($scope.users.currentUser.id);
                 $.ajax({
                     url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
                     type: 'PUT',
