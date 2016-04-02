@@ -31,8 +31,8 @@ $(document).ready(function() {
     style.type = 'text/css';
     style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } '+
                                               '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
-                                              '.statusSettingsAccordion h3.ui-accordion-header {border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
-                                              '.statusSettingsAccordion div.ui-accordion-content {background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D; height: auto;}'+
+                                              '.statusSettingsAccordion h3.ui-accordion-header {font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
+                                              '.statusSettingsAccordion div.ui-accordion-content { color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
                                               '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'
                                              ));
     style.setAttribute("type", "text/css");
@@ -234,32 +234,57 @@ function Main(){
                                                            '<div ng-repeat-end>{{status.id}}</div>'+
                                                        '<div>'+
                                                    '</div>');*/
-                $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="position: absolute;width: 200px; height: 100%; top:0px; background: #303941; right: -200px; overflow-y:auto; overflow-x:hide;">'+
+                $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="box-sizing: border-box; position: absolute; width: 250px; top:0px; background: #303941; right: -250px; height: 100%; padding: 10px 5px;"><div  style=" height: 100%; overflow-y:auto; overflow-x:hide;">'+
                                                        '<div class="statusSettingsAccordion">'+
-                                                           '<h3 ng-repeat-start="status in statuses.statusArray">{{status.name}}</h3>'+
+                                                           '<h3 ng-repeat-start="status in statuses.statusArray">'+
+                                                               '{{status.name}}'+
+                                                           '</h3>'+
                                                            '<div ng-repeat-end>{{status}}'+
+                                                               '<div class="checkbox">'+
+                                                                   '<label><input type="checkbox" ng-model="status.exactMatch">Exact Name Match</label>'+
+                                                               '</div>'+
+                                                               '<div class="checkbox">'+
+                                                                   '<label><input type="checkbox" ng-model="status.color">Color</label>'+
+                                                               '</div>'+
                                                                '<div>'+
+                                                                   '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
+                                                                   '<input type="text" ng-model="status.name" style="width: 75px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                               '</div>'+
+                                                               '<div>'+
+                                                                   '<label ng-if="status.color" for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
+                                                                   '<input ng-if="status.color" type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
-                                                   '</div>');
-                $('#userStatuses').parent().append('<div id="userStatusesSettingsBtn" class="btn btn-info">Settings</div>');
+                                                   '</div></div>');
+                //$('#userStatuses').parent().append('<div id="userStatusesSettingsBtn" class="btn btn-info">Settings</div>');
+
+
+                $('#userStatuses').parent().append(
+                            '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">'+
+                                '<div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>'+
+                                '<select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">'+
+                                    '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
+                                '</select>'+
+                            '</div>');
+
                 window.setTimeout(function(){
                     $('.statusSettingsAccordion').accordion({
                         collapsible: true,
                         active: false,
-                        icons: false
+                        icons: false,
+                        heightStyle: "content"
+                    });
+
+                    $('.userStatusesSettingsBtn').click(function(){
+                        //Cannot cleanly use toggle with a box-sizing:border-box; using aniamtion instead
+                        $('.horizontalSlideOut').animate({
+                            width: 'toggle',
+                            right: 'toggle',
+                            opacity: 'toggle'
+                        }, 400);
                     });
                 }, 1000);
-                $('#userStatusesSettingsBtn').click(function(){
-                    $('.horizontalSlideOut').toggle('slide', {}, 400);
-                });
-
-                /*$('#settingsAccordian').accordion({
-                    collapsible: true,
-                    active: false,
-                    icons: false
-                });*/
 
     //Primary Angular module
     var statusesApp = angular.module("statusesApp", []);
