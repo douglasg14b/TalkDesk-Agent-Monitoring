@@ -195,7 +195,7 @@ function Main(){
                             '</div>'+
                             '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
                                 '<label for="hideMatching">Hide Matching:</label>'+
-                                '<input type="text" ng-model="hideMatchingText" id="hideMatching" style="width: auto; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                '<input type="text" ng-model="$parent.hideMatchingText" style="width: auto; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                             '</div>'+
                             '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
                                 '<label ng-if="statuses.statusHash[statuses.selectedStatus].color" for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
