@@ -182,7 +182,7 @@ function Main(){
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
             '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customMatching ? statuses.statusHash[statuses.selectedStatus].matchBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
-                '{{statuses.statusHash[statuses.selectedStatus].customMatching}}<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
+                '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
                             '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
