@@ -50,112 +50,128 @@ var config = {
                 name:"Available",
                 id:"available",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "available",
                 maxTime: 60
             },
             'after_call_work':{
                 name:"Followup",
                 id:"after_call_work",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "after_call_work",
                 maxTime: 180
             },
             'busy_hq-shiftlead':{
                 name:"HQ Shift Lead",
                 id:"busy_hq-shiftlead",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_hq-shiftlead",
                 maxTime: -1
             },
             'busy_hq-mctexts':{
                 name:"HQ MC/Texts",
                 id:"busy_hq-mctexts",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_hq-mctexts",
                 maxTime: -1
             },
             'busy_dasherchat':{
                 name:"Dasher Chat",
                 id:"busy_dasherchat",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_dasherchat",
                 maxTime: -1
             },
             'busy_customeremails':{
                 name:"Customer Emails",
                 id:"busy_customeremails",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_customeremails",
                 maxTime: -1
             },
             'busy_dasheremails':{
                 name:"Dasher Emails",
                 id:"busy_dasheremails",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_dasheremails",
                 maxTime: -1
             },
             'busy':{
                 name:"On a Call",
                 id:"busy",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy",
                 maxTime: 300
             },
             'away':{
                 name:"Login Prep",
                 id:"away",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away",
                 maxTime: 60
             },
             'away_break1':{
-                name:"Break",
+                name:"Break 1",
                 id:"away_break",
                 color: true,
-                exactMatch: false,
+                customMatching: true,
+                matchBy: "Break",
                 maxTime: 1080
             },
             'away_break2':{
-                name:"Break",
+                name:"Break 2",
                 id:"away_break",
                 color: true,
-                exactMatch: false,
+                customMatching: true,
+                matchBy: "Break",
                 maxTime: 1080
             },
             'away_break3':{
-                name:"Break",
+                name:"Break 3",
                 id:"away_break",
                 color: true,
-                exactMatch: false,
+                customMatching: true,
+                matchBy: "Break",
                 maxTime: 1080
             },
             'away_lunch':{
                 name:"Lunch",
                 id: "away_lunch",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away_lunch",
                 maxTime: 2100
             },
             'away_nonbillable':{
                 name:"Non-Billable",
                 id:"away_nonbillable",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away_nonbillable",
                 maxTime: -1
             },
             'away_feedbackcoachingmeeting':{
                 name:"Feedback/Coaching/Meeting",
                 id: "away_feedbackcoachingmeeting",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away_feedbackcoachingmeeting",
                 maxTime: -1
             },
             'offline':{
                 name:"Offline",
                 id:"offline",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "offline",
                 maxTime: -1
             }
     }
@@ -165,8 +181,8 @@ function Main(){
 
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
-            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
-                '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
+            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customMatching ? statuses.statusHash[statuses.selectedStatus].matchBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
+                '{{statuses.statusHash[statuses.selectedStatus].customMatching}}<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
                             '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
@@ -175,7 +191,11 @@ function Main(){
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr ng-if="users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customMatching" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                            '<td><change-user-status-dropdown/></td>'+
+                            '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                        '</tr>'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customMatching" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].matchBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
@@ -215,8 +235,12 @@ function Main(){
                                                            '</h3>'+
                                                            '<div ng-repeat-end>'+
                                                                'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
-                                                               '<div class="checkbox hidden">'+
-                                                                   '<label><input type="checkbox" ng-model="status.exactMatch">Exact Name Match</label>'+
+                                                               '<div class="checkbox">'+
+                                                                   '<label><input type="checkbox" ng-model="status.customMatching">Custom Status Matching</label>'+
+                                                               '</div>'+
+                                                               '<div ng-if="status.customMatching">'+
+                                                                   '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
+                                                                   '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.matchBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
                                                                '<div class="checkbox">'+
                                                                    '<label><input type="checkbox" ng-model="status.color">Color</label>'+
@@ -225,9 +249,9 @@ function Main(){
                                                                    '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
                                                                    '<input type="text" ng-model="status.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
-                                                               '<div>'+
-                                                                   '<label ng-if="status.color" for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
-                                                                   '<input ng-if="status.color" type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
+                                                               '<div ng-if="status.color">'+
+                                                                   '<label for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
+                                                                   '<input type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
@@ -238,7 +262,7 @@ function Main(){
                             '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">\
                                 <div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>\
                                 <select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">\
-                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>\
+                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'matchBy\'">{{status.customMatching ? status.matchBy : status.name}}</option>\
                                 </select> \
                             </div>');
 
@@ -347,7 +371,7 @@ function Main(){
                     statuses.statusHash[status] = statusesConfig[status];
                 }
                 else{
-                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, exactMatch: true, maxTime: -1});
+                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customMatching: true, maxTime: -1});
                     statuses.statusHash[status] = statusesObject[status];
                 }
             }
