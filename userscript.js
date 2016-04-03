@@ -255,7 +255,7 @@ function Main(){
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
-                                                   '</div></div>');
+                                                   '</div></div><div class="btn btn-default" ng-click="Test()">Offline</div>');
 
                 //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
@@ -473,6 +473,38 @@ function Main(){
             setInterval(function(){$scope.statuses.CalculateStatusTimes($scope.config.statusConfig); $scope.$apply();}, 500);
         };
 
+        $scope.Test = function(){
+                var agent = {};
+                angular.copy(App.Vars.agent.attributes, agent);
+                console.info(App.Vars.agent.attributes);
+                agent.user = {"status":"offline","status_change":true,"reason":null};
+                //agent.sip_enabled = false;
+                //agent.phone_enabled = false;
+                //agent.web_enabled = true;
+
+                //Can either send the entire agents info with the request or just the following, both seem to work
+
+                if($scope.offlineWhenClosed){
+                    $.ajax({
+                        url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
+                        type: 'PUT',
+                        headers: {
+                            'Accept':'application/json, text/javascript, */*; q=0.01',
+                            'Accept-Encoding':'gzip, deflate, sdch',
+                            'Accept-Language':'en-US,en;q=0.8',
+                            'Content-Type': 'application/json'
+                        },
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
+                        timeout: 250,
+                        data: JSON.stringify(agent)
+                    });
+                }
+            return false;
+        };
+
         $scope.Unload = function(){
             $(window).unload(function(){
                 //var agent = {};
@@ -484,7 +516,13 @@ function Main(){
                         url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
                         type: 'PUT',
                         headers: {
+                            'Accept':'application/json, text/javascript, */*; q=0.01',
+                            'Accept-Encoding':'gzip, deflate, sdch',
+                            'Accept-Language':'en-US,en;q=0.8',
                             'Content-Type': 'application/json'
+                        },
+                        xhrFields: {
+                            withCredentials: true
                         },
                         async: false,
                         timeout: 250,
@@ -541,17 +579,26 @@ function Main(){
             var userID = attrs.userid;
             var statusID = attrs.statusid;
             if(typeof userID !== 'undefined' && typeof statusID !== 'undefined'){
+                //var agent = {};
+                //angular.copy(App.Vars.agent.attributes, agent);
                 element.bind('click', function(){
                     $.ajax({
                         url: 'https://doordash.mytalkdesk.com/users/' + userID,
                         type: 'PUT',
                         headers: {
+                            'Accept':'application/json, text/javascript, */*; q=0.01',
+                            'Accept-Encoding':'gzip, deflate, sdch',
+                            'Accept-Language':'en-US,en;q=0.8',
                             'Content-Type': 'application/json'
                         },
-                        async: true,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        crossDomain: true,
                         timeout: 250,
-                        data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":"forced"}}'
+                        data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":}}'
                     });
+                    return false;
                 });
             }
         };
@@ -630,7 +677,6 @@ function Main(){
     //Filters out multiple values from a string using '|' as a delimiter
     statusesApp.filter('negativeSplitFilter', ['$filter', function($filter){
         return function(items, filterString){
-            console.info('Filter String: ' + filterString);
             if(filterString != ''){
                 var output = [];
                 var filterValues = filterString.split('|');
