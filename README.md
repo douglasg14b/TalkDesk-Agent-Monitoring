@@ -13,9 +13,9 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 
 **Configuration:**
 * Can filter your view based on an exclusionary filter that allows multiple OR like strings
-* Can turn coloring off/on on a per status basis *(Implemented, but not configurable yet)*
+* Can turn coloring off/on on a per status basis
 * Can configure how the coloring is applied based on the time in a pause state
-* Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection *(Implemented, but not configurable yet)*
+* Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection *(Implemented and configrable, not user friendly)*
 
 **New Behavior:**
 * When TalkDesk is closed, it will put the user's status into `Offline`. *(Implemented, but not configurable yet)*
@@ -31,3 +31,8 @@ If the user does not have admin panel access, they will only be able to see thei
 To filter out values, click on settings and go to the "Hide Matching" box. Type in anything you want filtered in there. 
 
 To filter multiple values, deliminate your text with a `|`. ie. `name1 | name2`
+
+#### Grouping Statuses
+You can combine several statuses into a single selection. Such as combining 'Break 1', 'Break 2', and 'Break 3' into a single 'Break' selection that will display all users under either of those three statuses.
+
+To do this, change the display name on multiple statuses to be the same (In the settings/config slide out). ie. If you change the display name of `Break 1` and `Break 2` to `Break` both will be displayed when you select 'Break' from the statuses dropdown.
