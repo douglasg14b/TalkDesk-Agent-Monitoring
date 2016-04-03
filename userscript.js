@@ -486,7 +486,7 @@ function Main(){
                                <span class="caret"></span>\
                            </div>\
                            <ul style="position: fixed;"class="dropdown-menu">\
-                               <li ng-repeat="status in statuses.statusArray"><a>{{status.name}}</a></li>\
+                               <li ng-repeat="status in statuses.statusArray"><a change-user-status userId="{{user.id}}" statusId="{{status.id}}">{{status.name}}</a></li>\
                            </ul>\
                        </div>'
         };
@@ -504,6 +504,31 @@ function Main(){
                 dropdown.css('top', dropDownTop + "px");
                 dropdown.css('left', button.offset().left + "px");
             });
+        };
+        return{
+            link: link,
+            scope: false
+        };
+    });
+
+    statusesApp.directive('changeUserStatus', function(){
+        var link = function(scope, element, attrs){
+            var userID = attrs.userid;
+            var statusID = attrs.statusid;
+            if(typeof userID !== 'undefined' && typeof statusID !== 'undefined'){
+                element.bind('click', function(){
+                    $.ajax({
+                        url: 'https://doordash.mytalkdesk.com/users/' + userID,
+                        type: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        async: true,
+                        timeout: 250,
+                        data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":"forced"}}'
+                    });
+                });
+            }
         };
         return{
             link: link,
