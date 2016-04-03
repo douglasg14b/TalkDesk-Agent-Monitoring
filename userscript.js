@@ -32,7 +32,7 @@ $(document).ready(function() {
     style.type = 'text/css';
     style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } '+
                                               '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
-                                              '.statusSettingsAccordion h3.ui-accordion-header {font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
+                                              '.statusSettingsAccordion h3.ui-accordion-header {white-space: nowrap; font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
                                               '.statusSettingsAccordion div.ui-accordion-content { color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
                                               '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'
                                              ));
@@ -207,10 +207,11 @@ function Main(){
                                                        '</div>'+
                                                        '<div class="statusSettingsAccordion">'+
                                                            '<h3 ng-repeat-start="status in statuses.statusArray">'+
-                                                               '{{status.name}}'+
+                                                               '<span>{{status.name}}</span>'+
                                                            '</h3>'+
                                                            '<div ng-repeat-end>'+
-                                                               '<div class="checkbox">'+
+                                                               'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
+                                                               '<div class="checkbox hidden">'+
                                                                    '<label><input type="checkbox" ng-model="status.exactMatch">Exact Name Match</label>'+
                                                                '</div>'+
                                                                '<div class="checkbox">'+
