@@ -199,11 +199,14 @@ function Main(){
                 $('#userStatuses').parent().attr("ng-app", "statusesApp");
                 $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
 
-                //The configs window
+                //The config/settings window
                 $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="box-sizing: border-box; position: absolute; opacity:0; width: 0px; top:0px; background: #303941; right: 0px; height: 100%; padding: 10px 5px;"><div  style=" height: 100%; overflow-y:auto; overflow-x:hide;">'+
                                                        '<div>'+
                                                            '<label for="hideMatching" style="color: white;">Hide Matching:</label>'+
                                                            '<input type="text" ng-model="hideMatchingText" style="width: 200px; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                       '</div>'+
+                                                       '<div class="checkbox">'+
+                                                           '<label style="color: white;"><input type="checkbox" ng-model="offlineWhenClosed">Auto Offline</label>'+
                                                        '</div>'+
                                                        '<div class="statusSettingsAccordion">'+
                                                            '<h3 ng-repeat-start="status in statuses.statusArray">'+
@@ -405,6 +408,7 @@ function Main(){
         $scope.users.SetCurrentUser(App.Vars.agent);
 
         $scope.hideMatchingText = "";
+        $scope.offlineWhenClosed = true;
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
 
@@ -446,16 +450,22 @@ function Main(){
 
         $scope.Unload = function(){
             $(window).unload(function(){
-                $.ajax({
-                    url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
-                    type: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    async: false,
-                    timeout: 250,
-                    data: '{"user":{"status":"offline","status_change":true,"reason":"automated"}}'
-                });
+                //var agent = {};
+                //angular.copy(App.Vars.agent.attributes, agent);
+                //Can either send the entire agents info with the request or just the following, both seem to work
+
+                if($scope.offlineWhenClosed){
+                    $.ajax({
+                        url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
+                        type: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        async: false,
+                        timeout: 250,
+                        data: '{"user":{"status":"offline","status_change":true,"reason":"automated"}}'
+                    });
+                }
             });
         };
 
