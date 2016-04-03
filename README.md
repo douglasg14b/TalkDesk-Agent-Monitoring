@@ -15,11 +15,11 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 * Can filter your view based on an exclusionary filter that allows multiple OR like strings
 * Can turn coloring off/on on a per status basis
 * Can configure how the coloring is applied based on the time in a pause state
-* Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection *(Implemented and configrable, not user friendly)*
+* Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection
 
 **New Behavior:**
-* When TalkDesk is closed, it will put the user's status into `Offline`. *(Implemented, but not configurable yet)*
-* Can change the status of users right from the widget instead of having to navigating to the admin panel *(Not yet implemented)*
+* When TalkDesk is closed, it will put the user's status into `Offline`.
+* Can change the status of users right from the widget instead of having to navigating to the admin panel
 
 #### Views
 If the user has access to the TalkDesk admin panel, they will be able to view the pause state of any user under your organization's account, they will also be able to filter their view as well as switch their view between any of the pause states created for their organizations account.
@@ -35,4 +35,4 @@ To filter multiple values, deliminate your text with a `|`. ie. `name1 | name2`
 #### Grouping Statuses
 You can combine several statuses into a single selection. Such as combining 'Break 1', 'Break 2', and 'Break 3' into a single 'Break' selection that will display all users under either of those three statuses.
 
-To do this, change the display name on multiple statuses to be the same (In the settings/config slide out). ie. If you change the display name of `Break 1` and `Break 2` to `Break` both will be displayed when you select 'Break' from the statuses dropdown.
+To do this, check the `Custom Status Matching` checkbox on the statuses you wish to group together. In each of the statuses you wish to group, type in the name that you wish to group them by in the `Custom Group` text box.
