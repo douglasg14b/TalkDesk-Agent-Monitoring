@@ -34,7 +34,8 @@ $(document).ready(function() {
                                               '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
                                               '.statusSettingsAccordion h3.ui-accordion-header {white-space: nowrap; font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
                                               '.statusSettingsAccordion div.ui-accordion-content { color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
-                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'
+                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'+
+                                              '#statusTable tbody td {text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;}'
                                              ));
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
@@ -49,112 +50,128 @@ var config = {
                 name:"Available",
                 id:"available",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "available",
                 maxTime: 60
             },
             'after_call_work':{
                 name:"Followup",
                 id:"after_call_work",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "after_call_work",
                 maxTime: 180
             },
             'busy_hq-shiftlead':{
                 name:"HQ Shift Lead",
                 id:"busy_hq-shiftlead",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_hq-shiftlead",
                 maxTime: -1
             },
             'busy_hq-mctexts':{
                 name:"HQ MC/Texts",
                 id:"busy_hq-mctexts",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_hq-mctexts",
                 maxTime: -1
             },
             'busy_dasherchat':{
                 name:"Dasher Chat",
                 id:"busy_dasherchat",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_dasherchat",
                 maxTime: -1
             },
             'busy_customeremails':{
                 name:"Customer Emails",
                 id:"busy_customeremails",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_customeremails",
                 maxTime: -1
             },
             'busy_dasheremails':{
                 name:"Dasher Emails",
                 id:"busy_dasheremails",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy_dasheremails",
                 maxTime: -1
             },
             'busy':{
                 name:"On a Call",
                 id:"busy",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "busy",
                 maxTime: 300
             },
             'away':{
                 name:"Login Prep",
                 id:"away",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away",
                 maxTime: 60
             },
             'away_break1':{
-                name:"Break",
+                name:"Break 1",
                 id:"away_break",
                 color: true,
-                exactMatch: false,
+                customMatching: true,
+                matchBy: "Break",
                 maxTime: 1080
             },
             'away_break2':{
-                name:"Break",
+                name:"Break 2",
                 id:"away_break",
                 color: true,
-                exactMatch: false,
+                customMatching: true,
+                matchBy: "Break",
                 maxTime: 1080
             },
             'away_break3':{
-                name:"Break",
+                name:"Break 3",
                 id:"away_break",
                 color: true,
-                exactMatch: false,
+                customMatching: true,
+                matchBy: "Break",
                 maxTime: 1080
             },
             'away_lunch':{
                 name:"Lunch",
                 id: "away_lunch",
                 color: true,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away_lunch",
                 maxTime: 2100
             },
             'away_nonbillable':{
                 name:"Non-Billable",
                 id:"away_nonbillable",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away_nonbillable",
                 maxTime: -1
             },
             'away_feedbackcoachingmeeting':{
                 name:"Feedback/Coaching/Meeting",
                 id: "away_feedbackcoachingmeeting",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "away_feedbackcoachingmeeting",
                 maxTime: -1
             },
             'offline':{
                 name:"Offline",
                 id:"offline",
                 color: false,
-                exactMatch: true,
+                customMatching: false,
+                matchBy: "offline",
                 maxTime: -1
             }
     }
@@ -164,8 +181,8 @@ function Main(){
 
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
-            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
-                '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
+            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customMatching ? statuses.statusHash[statuses.selectedStatus].matchBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
+                '{{statuses.statusHash[statuses.selectedStatus].customMatching}}<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
                             '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
@@ -174,13 +191,17 @@ function Main(){
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr ng-if="users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customMatching" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                            '<td><change-user-status-dropdown/></td>'+
+                            '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                        '</tr>'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customMatching" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].matchBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                            '<td><change-user-status-dropdown/></td>'+
+                            '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="!users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})">'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}}</td>'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{users.usersHash[users.currentUser.id].timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                            '<td>{{statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}}</td>'+
+                            '<td>{{users.usersHash[users.currentUser.id].timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                     '</tbody>'+
                 '</table></div>' );
@@ -214,8 +235,12 @@ function Main(){
                                                            '</h3>'+
                                                            '<div ng-repeat-end>'+
                                                                'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
-                                                               '<div class="checkbox hidden">'+
-                                                                   '<label><input type="checkbox" ng-model="status.exactMatch">Exact Name Match</label>'+
+                                                               '<div class="checkbox">'+
+                                                                   '<label><input type="checkbox" ng-model="status.customMatching">Custom Status Matching</label>'+
+                                                               '</div>'+
+                                                               '<div ng-if="status.customMatching">'+
+                                                                   '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
+                                                                   '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.matchBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
                                                                '<div class="checkbox">'+
                                                                    '<label><input type="checkbox" ng-model="status.color">Color</label>'+
@@ -224,9 +249,9 @@ function Main(){
                                                                    '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
                                                                    '<input type="text" ng-model="status.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
-                                                               '<div>'+
-                                                                   '<label ng-if="status.color" for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
-                                                                   '<input ng-if="status.color" type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
+                                                               '<div ng-if="status.color">'+
+                                                                   '<label for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
+                                                                   '<input type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
@@ -237,7 +262,7 @@ function Main(){
                             '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">\
                                 <div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>\
                                 <select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">\
-                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>\
+                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'matchBy\'">{{status.customMatching ? status.matchBy : status.name}}</option>\
                                 </select> \
                             </div>');
 
@@ -346,7 +371,7 @@ function Main(){
                     statuses.statusHash[status] = statusesConfig[status];
                 }
                 else{
-                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, exactMatch: true, maxTime: -1});
+                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customMatching: true, maxTime: -1});
                     statuses.statusHash[status] = statusesObject[status];
                 }
             }
@@ -473,6 +498,67 @@ function Main(){
         $scope.SetupTimer();
         $scope.Unload();
     }]);
+
+    //Directive defining a user status dropdown template
+    statusesApp.directive('changeUserStatusDropdown', function(){
+        return{
+            restrict: 'AE',
+            replace: true,
+            template: '<div class="dropdown pull-left">\
+                           <div dropdown-clear class="dropdown-toggle" data-toggle="dropdown">\
+                               {{user.name}}\
+                               <span class="caret"></span>\
+                           </div>\
+                           <ul style="position: fixed;"class="dropdown-menu">\
+                               <li ng-repeat="status in statuses.statusArray"><a change-user-status userId="{{user.id}}" statusId="{{status.id}}">{{status.name}}</a></li>\
+                           </ul>\
+                       </div>'
+        };
+    });
+
+    //Clears the dropdown from beign clipped by any overflow:hidden elements.
+    //Implementation Courtesy of https://github.com/twbs/bootstrap/issues/7160 --> http://jsfiddle.net/Q5JvA/
+    statusesApp.directive("dropdownClear", function(){
+        var link = function(scope, element, attrs){
+            element.bind('click', function(){
+                var button = $(this);
+                var dropdown = button.parent().find('.dropdown-menu');
+
+                var dropDownTop = button.offset().top + button.outerHeight();
+                dropdown.css('top', dropDownTop + "px");
+                dropdown.css('left', button.offset().left + "px");
+            });
+        };
+        return{
+            link: link,
+            scope: false
+        };
+    });
+
+    statusesApp.directive('changeUserStatus', function(){
+        var link = function(scope, element, attrs){
+            var userID = attrs.userid;
+            var statusID = attrs.statusid;
+            if(typeof userID !== 'undefined' && typeof statusID !== 'undefined'){
+                element.bind('click', function(){
+                    $.ajax({
+                        url: 'https://doordash.mytalkdesk.com/users/' + userID,
+                        type: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        async: true,
+                        timeout: 250,
+                        data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":"forced"}}'
+                    });
+                });
+            }
+        };
+        return{
+            link: link,
+            scope: false
+        };
+    });
 
     //Converts an associative array to an array https://github.com/petebacondarwin/angular-toArrayFilter
     statusesApp.filter('toArray', function () {
