@@ -239,7 +239,7 @@ function Main(){
                                                                    '<label><input type="checkbox" ng-model="status.customMatching">Custom Status Matching</label>'+
                                                                '</div>'+
                                                                '<div ng-if="status.customMatching">'+
-                                                                   '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
+                                                                   '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Custom Group</label>'+
                                                                    '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.matchBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
                                                                '<div class="checkbox">'+
