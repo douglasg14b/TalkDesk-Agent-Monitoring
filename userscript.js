@@ -1,5 +1,6 @@
 /*eslint-env browser, jquery*/
 /*globals angular */
+/*jshint multistr: true */
 
 // ==UserScript==
 // @name         TalkDesk Real Time Statuses 2
@@ -22,9 +23,19 @@ $(document).ready(function() {
     script2.setAttribute("src", "https://cdn.rawgit.com/ROMB/jquery-dialogextend/master/build/jquery.dialogextend.min.js");
     document.body.appendChild(script2);
 
+    var fontAwesome = document.createElement("link");
+    fontAwesome.type = 'test/css';
+    fontAwesome.setAttribute("rel", "stylesheet");
+    fontAwesome.setAttribute('src', 'https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css');
+
     var style = document.createElement("style");
     style.type = 'text/css';
-    style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } .ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important;}'));
+    style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } '+
+                                              '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
+                                              '.statusSettingsAccordion h3.ui-accordion-header {white-space: nowrap; font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
+                                              '.statusSettingsAccordion div.ui-accordion-content { color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
+                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'
+                                             ));
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
 
@@ -173,7 +184,10 @@ function Main(){
                         '</tr>'+
                     '</tbody>'+
                 '</table></div>' );
-                $('#userStatuses').dialog().dialogExtend({
+                $('#userStatuses').dialog({
+                    resize: function(event, ui){
+                    }
+                }).dialogExtend({
                     closable : false,
                     maximizable : false,
                     collapsable : true,
@@ -184,30 +198,77 @@ function Main(){
                 $('.ui-dialog-titlebar').css('position', 'relative');
                 $('#userStatuses').parent().attr("ng-app", "statusesApp");
                 $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
+
+                //The configs window
+                $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="box-sizing: border-box; position: absolute; opacity:0; width: 0px; top:0px; background: #303941; right: 0px; height: 100%; padding: 10px 5px;"><div  style=" height: 100%; overflow-y:auto; overflow-x:hide;">'+
+                                                       '<div>'+
+                                                           '<label for="hideMatching" style="color: white;">Hide Matching:</label>'+
+                                                           '<input type="text" ng-model="hideMatchingText" style="width: 200px; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                       '</div>'+
+                                                       '<div class="statusSettingsAccordion">'+
+                                                           '<h3 ng-repeat-start="status in statuses.statusArray">'+
+                                                               '<span>{{status.name}}</span>'+
+                                                           '</h3>'+
+                                                           '<div ng-repeat-end>'+
+                                                               'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
+                                                               '<div class="checkbox hidden">'+
+                                                                   '<label><input type="checkbox" ng-model="status.exactMatch">Exact Name Match</label>'+
+                                                               '</div>'+
+                                                               '<div class="checkbox">'+
+                                                                   '<label><input type="checkbox" ng-model="status.color">Color</label>'+
+                                                               '</div>'+
+                                                               '<div>'+
+                                                                   '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
+                                                                   '<input type="text" ng-model="status.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                               '</div>'+
+                                                               '<div>'+
+                                                                   '<label ng-if="status.color" for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
+                                                                   '<input ng-if="status.color" type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
+                                                               '</div>'+
+                                                           '</div>'+
+                                                       '<div>'+
+                                                   '</div></div>');
+
+                //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
-                    '<div style="color: white;" id="settingsAccordian">'+
-                        '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
-                        '<div style="background: #303941;">'+
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
-                                '<select ng-model="statuses.selectedStatus" style="width: auto;">'+
-                                    '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
-                                '</select>'+
-                            '</div>'+
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
-                                '<label for="hideMatching">Hide Matching:</label>'+
-                                '<input type="text" ng-model="$parent.hideMatchingText" style="width: auto; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
-                            '</div>'+
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
-                                '<label ng-if="statuses.statusHash[statuses.selectedStatus].color" for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
-                                '<input ng-if="statuses.statusHash[statuses.selectedStatus].color" type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: auto;">'+
-                            '</div>'+
-                        '</div>'+
-                    '</div>');
-                $('#settingsAccordian').accordion({
-                    collapsible: true,
-                    active: false,
-                    icons: false
-                });
+                            '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">\
+                                <div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>\
+                                <select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">\
+                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>\
+                                </select> \
+                            </div>');
+
+                //Setup the config accordians and click event to toggle the configs
+                window.setTimeout(function(){
+                    $('.statusSettingsAccordion').accordion({
+                        collapsible: true,
+                        active: false,
+                        icons: false,
+                        heightStyle: "content"
+                    });
+
+                    $('.userStatusesSettingsBtn').click(function(){
+                        //Cannot cleanly use toggle with a box-sizing:border-box; using aniamtion instead
+                        var slideOut = $(".horizontalSlideOut");
+                        if(slideOut.hasClass('active')){
+                            slideOut.animate({
+                                width: '0',
+                                right: '0',
+                                opacity: '0'
+                            }, 400);
+                        } else {
+                            slideOut.animate({
+                                width: '250',
+                                right: '-250',
+                                opacity: '100'
+                            }, 400);
+                        }
+                        slideOut.toggleClass('active');
+
+                    });
+                    //$('.horizontalSlideOut').css('width', '0px').css('right', '0px').css('opacity', '0');
+                    //$('.horizontalSlideOut').removeClass('hidden');
+                }, 1000);
 
     //Primary Angular module
     var statusesApp = angular.module("statusesApp", []);
@@ -346,27 +407,28 @@ function Main(){
         $scope.hideMatchingText = "";
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
-            console.info("inside request event handler");
+
             XMLHttpRequest.prototype.open = function() {
                 this.addEventListener("readystatechange", function() {
-                    if(this.responseText != null)
+                    if(this.readyState == 4)
                     {
-                        if(typeof this.responseText != 'undefined' && this.responseText != ""){
+                        var xmlResponseText = this.responseText;
+                        if(typeof xmlResponseText != 'undefined' && xmlResponseText != ""){
                             var responseObject = {};
                             try{
-                                responseObject = JSON.parse(this.responseText);
+                                responseObject = JSON.parse(xmlResponseText);
                             }
                             catch(e) {
+                                console.error(e);
+                                console.error(xmlResponseText);
+                                console.error(xmlResponseText);
                                 console.error("JSON Parse Failed");
                            }
                             if(typeof responseObject._id != 'undefined'){
                                 if(typeof responseObject.status != 'undefined'){
                                     $scope.statuses.ProcessStatusChange(responseObject, 'userInfo');
-                                    console.info("New Valid Request");
                                 }else if(typeof responseObject.callsid != 'undefined'){
                                     $scope.statuses.ProcessStatusChange(responseObject, 'callInfo');
-                                    console.info('Response Object');
-                                    console.info(responseObject);
                                 }
                             }
                         }
@@ -374,6 +436,7 @@ function Main(){
                 }, false);
                 open.apply(this, arguments);
             };
+
         };
 
         //Sets the timer for when times are recalcualted, 500ms at the moment
@@ -383,7 +446,6 @@ function Main(){
 
         $scope.Unload = function(){
             $(window).unload(function(){
-                console.debug($scope.users.currentUser.id);
                 $.ajax({
                     url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
                     type: 'PUT',
