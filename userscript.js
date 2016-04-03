@@ -34,7 +34,8 @@ $(document).ready(function() {
                                               '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
                                               '.statusSettingsAccordion h3.ui-accordion-header {white-space: nowrap; font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
                                               '.statusSettingsAccordion div.ui-accordion-content { color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
-                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'
+                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'+
+                                              '#statusTable tbody td {text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;}'
                                              ));
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
@@ -175,12 +176,12 @@ function Main(){
                     '</thead>'+
                     '<tbody>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : statuses.statusHash[statuses.selectedStatus].exactMatch | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.name}}</td>'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                            '<td><change-user-status-dropdown/></td>'+
+                            '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="!users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})">'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}}</td>'+
-                            '<td style="text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;">{{users.usersHash[users.currentUser.id].timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
+                            '<td>{{statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}}</td>'+
+                            '<td>{{users.usersHash[users.currentUser.id].timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                     '</tbody>'+
                 '</table></div>' );
@@ -473,6 +474,42 @@ function Main(){
         $scope.SetupTimer();
         $scope.Unload();
     }]);
+
+    //Directive defining a user status dropdown template
+    statusesApp.directive('changeUserStatusDropdown', function(){
+        return{
+            restrict: 'AE',
+            replace: true,
+            template: '<div class="dropdown pull-left">\
+                           <div dropdown-clear class="dropdown-toggle" data-toggle="dropdown">\
+                               {{user.name}}\
+                               <span class="caret"></span>\
+                           </div>\
+                           <ul style="position: fixed;"class="dropdown-menu">\
+                               <li ng-repeat="status in statuses.statusArray"><a>{{status.name}}</a></li>\
+                           </ul>\
+                       </div>'
+        };
+    });
+
+    //Clears the dropdown from beign clipped by any overflow:hidden elements.
+    //Implementation Courtesy of https://github.com/twbs/bootstrap/issues/7160 --> http://jsfiddle.net/Q5JvA/
+    statusesApp.directive("dropdownClear", function(){
+        var link = function(scope, element, attrs){
+            element.bind('click', function(){
+                var button = $(this);
+                var dropdown = button.parent().find('.dropdown-menu');
+
+                var dropDownTop = button.offset().top + button.outerHeight();
+                dropdown.css('top', dropDownTop + "px");
+                dropdown.css('left', button.offset().left + "px");
+            });
+        };
+        return{
+            link: link,
+            scope: false
+        };
+    });
 
     //Converts an associative array to an array https://github.com/petebacondarwin/angular-toArrayFilter
     statusesApp.filter('toArray', function () {
