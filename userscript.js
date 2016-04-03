@@ -51,7 +51,7 @@ var config = {
                 id:"available",
                 color: true,
                 customGrouping: false,
-                matchBy: "available",
+                groupBy: "available",
                 maxTime: 60
             },
             'after_call_work':{
@@ -59,7 +59,7 @@ var config = {
                 id:"after_call_work",
                 color: true,
                 customGrouping: false,
-                matchBy: "after_call_work",
+                groupBy: "after_call_work",
                 maxTime: 180
             },
             'busy_hq-shiftlead':{
@@ -67,7 +67,7 @@ var config = {
                 id:"busy_hq-shiftlead",
                 color: false,
                 customGrouping: false,
-                matchBy: "busy_hq-shiftlead",
+                groupBy: "busy_hq-shiftlead",
                 maxTime: -1
             },
             'busy_hq-mctexts':{
@@ -75,7 +75,7 @@ var config = {
                 id:"busy_hq-mctexts",
                 color: false,
                 customGrouping: false,
-                matchBy: "busy_hq-mctexts",
+                groupBy: "busy_hq-mctexts",
                 maxTime: -1
             },
             'busy_dasherchat':{
@@ -83,7 +83,7 @@ var config = {
                 id:"busy_dasherchat",
                 color: false,
                 customGrouping: false,
-                matchBy: "busy_dasherchat",
+                groupBy: "busy_dasherchat",
                 maxTime: -1
             },
             'busy_customeremails':{
@@ -91,7 +91,7 @@ var config = {
                 id:"busy_customeremails",
                 color: false,
                 customGrouping: false,
-                matchBy: "busy_customeremails",
+                groupBy: "busy_customeremails",
                 maxTime: -1
             },
             'busy_dasheremails':{
@@ -99,7 +99,7 @@ var config = {
                 id:"busy_dasheremails",
                 color: false,
                 customGrouping: false,
-                matchBy: "busy_dasheremails",
+                groupBy: "busy_dasheremails",
                 maxTime: -1
             },
             'busy':{
@@ -107,7 +107,7 @@ var config = {
                 id:"busy",
                 color: true,
                 customGrouping: false,
-                matchBy: "busy",
+                groupBy: "busy",
                 maxTime: 300
             },
             'away':{
@@ -115,7 +115,7 @@ var config = {
                 id:"away",
                 color: true,
                 customGrouping: false,
-                matchBy: "away",
+                groupBy: "away",
                 maxTime: 60
             },
             'away_break1':{
@@ -123,7 +123,7 @@ var config = {
                 id:"away_break",
                 color: true,
                 customGrouping: true,
-                matchBy: "Break",
+                groupBy: "Break",
                 maxTime: 1080
             },
             'away_break2':{
@@ -131,7 +131,7 @@ var config = {
                 id:"away_break",
                 color: true,
                 customGrouping: true,
-                matchBy: "Break",
+                groupBy: "Break",
                 maxTime: 1080
             },
             'away_break3':{
@@ -139,7 +139,7 @@ var config = {
                 id:"away_break",
                 color: true,
                 customGrouping: true,
-                matchBy: "Break",
+                groupBy: "Break",
                 maxTime: 1080
             },
             'away_lunch':{
@@ -147,7 +147,7 @@ var config = {
                 id: "away_lunch",
                 color: true,
                 customGrouping: false,
-                matchBy: "away_lunch",
+                groupBy: "away_lunch",
                 maxTime: 2100
             },
             'away_nonbillable':{
@@ -155,7 +155,7 @@ var config = {
                 id:"away_nonbillable",
                 color: false,
                 customGrouping: false,
-                matchBy: "away_nonbillable",
+                groupBy: "away_nonbillable",
                 maxTime: -1
             },
             'away_feedbackcoachingmeeting':{
@@ -163,7 +163,7 @@ var config = {
                 id: "away_feedbackcoachingmeeting",
                 color: false,
                 customGrouping: false,
-                matchBy: "away_feedbackcoachingmeeting",
+                groupBy: "away_feedbackcoachingmeeting",
                 maxTime: -1
             },
             'offline':{
@@ -171,7 +171,7 @@ var config = {
                 id:"offline",
                 color: false,
                 customGrouping: false,
-                matchBy: "offline",
+                groupBy: "offline",
                 maxTime: -1
             }
     }
@@ -181,7 +181,7 @@ function Main(){
 
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
-            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customGrouping ? statuses.statusHash[statuses.selectedStatus].matchBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
+            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customGrouping ? statuses.statusHash[statuses.selectedStatus].groupBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
@@ -195,7 +195,7 @@ function Main(){
                             '<td><change-user-status-dropdown/></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
-                        '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].matchBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].groupBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
@@ -236,11 +236,11 @@ function Main(){
                                                            '<div ng-repeat-end>'+
                                                                'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
                                                                '<div class="checkbox">'+
-                                                                   '<label><input type="checkbox" ng-model="status.customGrouping">Custom Grouping</label>'+
+                                                                   '<label><input type="checkbox" ng-change="!status.customGrouping ? status.groupBy = status.id : null" ng-model="status.customGrouping">Custom Grouping</label>'+
                                                                '</div>'+
                                                                '<div ng-if="status.customGrouping">'+
                                                                    '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Group Name</label>'+
-                                                                   '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.matchBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                                   '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.groupBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
                                                                '<div class="checkbox">'+
                                                                    '<label><input type="checkbox" ng-model="status.color">Color</label>'+
@@ -262,7 +262,7 @@ function Main(){
                             '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">\
                                 <div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>\
                                 <select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">\
-                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'matchBy\'">{{status.customGrouping ? status.matchBy : status.name}}</option>\
+                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'groupBy\'">{{status.customGrouping ? status.groupBy : status.name}}</option>\
                                 </select> \
                             </div>');
 
@@ -535,6 +535,7 @@ function Main(){
         };
     });
 
+    //Directive when a status is selected when changing a users status
     statusesApp.directive('changeUserStatus', function(){
         var link = function(scope, element, attrs){
             var userID = attrs.userid;
