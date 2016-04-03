@@ -1,5 +1,6 @@
 /*eslint-env browser, jquery*/
 /*globals angular */
+/*jshint multistr: true */
 
 // ==UserScript==
 // @name         TalkDesk Real Time Statuses 2
@@ -197,49 +198,18 @@ function Main(){
                 $('.ui-dialog-titlebar').css('position', 'relative');
                 $('#userStatuses').parent().attr("ng-app", "statusesApp");
                 $('#userStatuses').parent().attr("ng-controller", "statusesAppController");
-                /*$('#userStatuses').parent().append(
-                    '<div style="color: white;" id="settingsAccordian">'+
-                        '<h3 style="border: 0px; text-align:center;">Settings</h3>'+
-                        '<div style="background: #303941;">'+
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
-                                '<select ng-model="statuses.selectedStatus" style="width: auto;">'+
-                                    '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
-                                '</select>'+
-                            '</div>'+
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
-                                '<label for="hideMatching">Hide Matching:</label>'+
-                                '<input type="text" ng-model="$parent.hideMatchingText" style="width: auto; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
-                            '</div>'+
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="width: 100%; font-size: 1em;">'+
-                                '<label ng-if="statuses.statusHash[statuses.selectedStatus].color" for="hideMatching">Highest {{statuses.statusHash[statuses.selectedStatus].name}} Permitted (s)</label>'+
-                                '<input ng-if="statuses.statusHash[statuses.selectedStatus].color" type="number" ng-model="statuses.statusHash[statuses.selectedStatus].maxTime" id="hideMatching" style="width: auto;">'+
-                            '</div>'+
-                        '</div>'+
-                    '</div>');*/
-                /*$('#userStatuses').parent().append('<div class="horizontalSlideOut" style="position: absolute;width: 150px; height: 100%; top:0px; background: #303941; right: -150px;"> Stuff And Stuff'+
-                                                       '<div class="statusSettingsAccordion">'+
-                                                           '<div class="panel-group">'+
-                                                               '<div ng-repeat="status in statuses.statusArray" class="panel panel-default">'+
-                                                                   '<div class="panel-heading">'+
-                                                                       '<h4 class="panel-title">'+
-                                                                           '<a data-toggle="collapse" href="#settingsCollapse{{$index}}">{{status.name}}</a>'+
-                                                                       '</h4>'+
-                                                                   '</div>'+
-                                                                   '<div id="settingsCollapse{{$index}}" class="panel-collapse collapse in">'+
-                                                                       '<div class="panel-body">{{status.id}}</div>'+
-                                                                   '</div>'+
-                                                               '</div>'+
-                                                           '</div>'+
-                                                           '<h3 ng-repeat-start="status in statuses.statusArray">{{status.name}}</h3>'+
-                                                           '<div ng-repeat-end>{{status.id}}</div>'+
+
+                //The configs window
+                $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="box-sizing: border-box; position: absolute; opacity:0; width: 0px; top:0px; background: #303941; right: 0px; height: 100%; padding: 10px 5px;"><div  style=" height: 100%; overflow-y:auto; overflow-x:hide;">'+
                                                        '<div>'+
-                                                   '</div>');*/
-                $('#userStatuses').parent().append('<div class="horizontalSlideOut" style="box-sizing: border-box; position: absolute; width: 250px; top:0px; background: #303941; right: -250px; height: 100%; padding: 10px 5px;"><div  style=" height: 100%; overflow-y:auto; overflow-x:hide;">'+
+                                                           '<label for="hideMatching" style="color: white;">Hide Matching:</label>'+
+                                                           '<input type="text" ng-model="hideMatchingText" style="width: 200px; padding: 6px 6px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                       '</div>'+
                                                        '<div class="statusSettingsAccordion">'+
                                                            '<h3 ng-repeat-start="status in statuses.statusArray">'+
                                                                '{{status.name}}'+
                                                            '</h3>'+
-                                                           '<div ng-repeat-end>{{status}}'+
+                                                           '<div ng-repeat-end>'+
                                                                '<div class="checkbox">'+
                                                                    '<label><input type="checkbox" ng-model="status.exactMatch">Exact Name Match</label>'+
                                                                '</div>'+
@@ -248,7 +218,7 @@ function Main(){
                                                                '</div>'+
                                                                '<div>'+
                                                                    '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
-                                                                   '<input type="text" ng-model="status.name" style="width: 75px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                                   '<input type="text" ng-model="status.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
                                                                '</div>'+
                                                                '<div>'+
                                                                    '<label ng-if="status.color" for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
@@ -257,17 +227,17 @@ function Main(){
                                                            '</div>'+
                                                        '<div>'+
                                                    '</div></div>');
-                //$('#userStatuses').parent().append('<div id="userStatusesSettingsBtn" class="btn btn-info">Settings</div>');
 
-
+                //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
-                            '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">'+
-                                '<div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>'+
-                                '<select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">'+
-                                    '<option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>'+
-                                '</select>'+
-                            '</div>');
+                            '<div ng-if="users.currentUser.canAccessAdmin" style="font-size: 1em; margin-top: 3px;">\
+                                <div id="userStatusesSettingsBtn" class="userStatusesSettingsBtn btn btn-info">Settings</div>\
+                                <select ng-model="statuses.selectedStatus" style="width: 150px; float:right; height: 35px;">\
+                                    <option id="{{status.id}}" value="{{status.id}}" ng-repeat="status in statuses.statusArray | unique: \'name\'">{{status.name}}</option>\
+                                </select> \
+                            </div>');
 
+                //Setup the config accordians and click event to toggle the configs
                 window.setTimeout(function(){
                     $('.statusSettingsAccordion').accordion({
                         collapsible: true,
@@ -278,12 +248,25 @@ function Main(){
 
                     $('.userStatusesSettingsBtn').click(function(){
                         //Cannot cleanly use toggle with a box-sizing:border-box; using aniamtion instead
-                        $('.horizontalSlideOut').animate({
-                            width: 'toggle',
-                            right: 'toggle',
-                            opacity: 'toggle'
-                        }, 400);
+                        var slideOut = $(".horizontalSlideOut");
+                        if(slideOut.hasClass('active')){
+                            slideOut.animate({
+                                width: '0',
+                                right: '0',
+                                opacity: '0'
+                            }, 400);
+                        } else {
+                            slideOut.animate({
+                                width: '250',
+                                right: '-250',
+                                opacity: '100'
+                            }, 400);
+                        }
+                        slideOut.toggleClass('active');
+
                     });
+                    //$('.horizontalSlideOut').css('width', '0px').css('right', '0px').css('opacity', '0');
+                    //$('.horizontalSlideOut').removeClass('hidden');
                 }, 1000);
 
     //Primary Angular module
