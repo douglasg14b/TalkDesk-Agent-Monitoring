@@ -1,4 +1,4 @@
-# TalkDesk Real Time Pause States
+# TalkDesk++
 
 This project aims to supplement some of the shortcomings of TalkDesk, such as displaying real time status timers or changing users statuses to offline when they close their browser.
 
