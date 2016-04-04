@@ -83,6 +83,7 @@ function Main(){
                     '</tbody>'+
                 '</table></div>' );
                 $('#userStatuses').dialog({
+                    closeOnEscape: false,
                     resize: function(event, ui){
                     }
                 }).dialogExtend({
