@@ -23,6 +23,10 @@ $(document).ready(function() {
     script2.setAttribute("src", "https://cdn.rawgit.com/ROMB/jquery-dialogextend/master/build/jquery.dialogextend.min.js");
     document.body.appendChild(script2);
 
+    var lzString = document.createElement("script");
+    lzString.setAttribute("src", "https://cdn.rawgit.com/pieroxy/lz-string/master/libs/lz-string.min.js");
+    document.body.appendChild(lzString);
+
     var fontAwesome = document.createElement("link");
     fontAwesome.type = 'test/css';
     fontAwesome.setAttribute("rel", "stylesheet");
@@ -49,140 +53,6 @@ $(document).ready(function() {
         }
     })();
 })();
-
-
-var config = {
-    statusConfig: {
-            'available':{
-                name:"Available",
-                id:"available",
-                color: true,
-                customGrouping: false,
-                groupBy: "available",
-                maxTime: 60
-            },
-            'after_call_work':{
-                name:"Followup",
-                id:"after_call_work",
-                color: true,
-                customGrouping: false,
-                groupBy: "after_call_work",
-                maxTime: 180
-            },
-            'busy_hq-shiftlead':{
-                name:"HQ Shift Lead",
-                id:"busy_hq-shiftlead",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_hq-shiftlead",
-                maxTime: -1
-            },
-            'busy_hq-mctexts':{
-                name:"HQ MC/Texts",
-                id:"busy_hq-mctexts",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_hq-mctexts",
-                maxTime: -1
-            },
-            'busy_dasherchat':{
-                name:"Dasher Chat",
-                id:"busy_dasherchat",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_dasherchat",
-                maxTime: -1
-            },
-            'busy_customeremails':{
-                name:"Customer Emails",
-                id:"busy_customeremails",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_customeremails",
-                maxTime: -1
-            },
-            'busy_dasheremails':{
-                name:"Dasher Emails",
-                id:"busy_dasheremails",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_dasheremails",
-                maxTime: -1
-            },
-            'busy':{
-                name:"On a Call",
-                id:"busy",
-                color: true,
-                customGrouping: false,
-                groupBy: "busy",
-                maxTime: 300
-            },
-            'away':{
-                name:"Login Prep",
-                id:"away",
-                color: true,
-                customGrouping: false,
-                groupBy: "away",
-                maxTime: 60
-            },
-            'away_break1':{
-                name:"Break 1",
-                id:"away_break",
-                color: true,
-                customGrouping: true,
-                groupBy: "Break",
-                maxTime: 1080
-            },
-            'away_break2':{
-                name:"Break 2",
-                id:"away_break",
-                color: true,
-                customGrouping: true,
-                groupBy: "Break",
-                maxTime: 1080
-            },
-            'away_break3':{
-                name:"Break 3",
-                id:"away_break",
-                color: true,
-                customGrouping: true,
-                groupBy: "Break",
-                maxTime: 1080
-            },
-            'away_lunch':{
-                name:"Lunch",
-                id: "away_lunch",
-                color: true,
-                customGrouping: false,
-                groupBy: "away_lunch",
-                maxTime: 2100
-            },
-            'away_nonbillable':{
-                name:"Non-Billable",
-                id:"away_nonbillable",
-                color: false,
-                customGrouping: false,
-                groupBy: "away_nonbillable",
-                maxTime: -1
-            },
-            'away_feedbackcoachingmeeting':{
-                name:"Feedback/Coaching/Meeting",
-                id: "away_feedbackcoachingmeeting",
-                color: false,
-                customGrouping: false,
-                groupBy: "away_feedbackcoachingmeeting",
-                maxTime: -1
-            },
-            'offline':{
-                name:"Offline",
-                id:"offline",
-                color: false,
-                customGrouping: false,
-                groupBy: "offline",
-                maxTime: -1
-            }
-    }
-};
 
 function Main(){
 
@@ -262,7 +132,7 @@ function Main(){
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
-                                                   '</div></div>');
+                                                   '</div></div><copy-paste-config-btn />');
 
                 //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
@@ -316,7 +186,7 @@ function Main(){
         config.InitializeConfig = function(){
             var data = config.storage.getItem('talkdeskStatusesConfig');
             if(data !== null){
-                config.configData = JSON.parse(data);
+                config.configData = JSON.parse(LZString.decompressFromBase64(data));
             }
         };
 
@@ -331,14 +201,22 @@ function Main(){
         };
 
         //Sets the localstorage item
-        config.SetConfig = function(data, type){
+        config.SetConfig = function(key, value){
             if(config.configData !== null){
-                config.configData[type] = data;
-                config.storage.setItem('talkdeskStatusesConfig', JSON.stringify(config.configData));
+                config.configData[key] = value;
+                config.storage.setItem('talkdeskStatusesConfig', LZString.compressToBase64(angular.toJson(config.configData)));
             } else {
                 config.configData = {};
-                config.configData[type] = data;
-                config.storage.setItem('talkdeskStatusesConfig', JSON.stringify(config.configData));
+                config.configData[key] = value;
+                config.storage.setItem('talkdeskStatusesConfig', LZString.compressToBase64(angular.toJson(config.configData)));
+            }
+        };
+
+        //Clears all config data
+        config.ClearConfig = function(){
+            if(config.configData !== null){
+                config.configData = null;
+                config.storage.removeItem('talkdeskStatusesConfig');
             }
         };
 
@@ -421,7 +299,28 @@ function Main(){
                 statuses.statusArray.push(statusToPush);
                 statuses.statusHash[status] = statusToPush;
             }
-            config.SetConfig(statuses.statusHash, 'statusConfig');
+            config.SetConfig('statusConfig', statuses.statusHash);
+        };
+
+        //Called to reset the statuses when a new config is pasted in
+        statuses.ResetStatuses = function(statusesObject){
+            for(var status in statusesObject){
+                if(config.configData !== null){
+                    if(config.configData.statusConfig.hasOwnProperty(status)){
+                        var statusToPush = config.configData.statusConfig[status];
+                        statusToPush.id = status;
+                        for(let property in statusToPush){
+                            statuses.statusHash[status][property] = statusToPush[property];
+                        }
+                        continue;
+                    }
+                }
+                var statusToPush = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
+                for(let property in statusToPush){
+                    statuses.statusHash[status][property] = statusToPush[property];
+                }
+            }
+            config.SetConfig('statusConfig', statuses.statusHash);
         };
 
         statuses.ProcessStatusChange = function(requestObject, type){
@@ -486,11 +385,11 @@ function Main(){
         var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
         var hideMatchingTimeout = $timeout(function(){}); // Debouncer timer for hideMatchingText
 
-        //Watch statuses config for changes, write to localStorage on debounced change
+        //Deep Watch statuses config for changes, write to localStorage on debounced change
         $scope.$watch('statuses.statusHash', function(newVal, oldVal){
             $timeout.cancel(statusesTimeout);
             statusesTimeout = $timeout(function(){
-                $scope.config.SetConfig($scope.statuses.statusHash, 'statusConfig');
+                $scope.config.SetConfig( 'statusConfig', $scope.statuses.statusHash);
             }, 500);
         }, true);
 
@@ -498,13 +397,13 @@ function Main(){
         $scope.$watch('hideMatchingText', function(newVal, oldVal){
             $timeout.cancel(statusesTimeout);
             hideMatchingTimeout = $timeout(function(){
-                $scope.config.SetConfig(newVal, 'hideMatchingText');
+                $scope.config.SetConfig('hideMatchingText', newVal);
             }, 500);
-        }, true);
+        });
 
         //Watch offlineWhenClosed config for changes, write to localStorage on change
         $scope.$watch('offlineWhenClosed', function(newVal, oldVal){
-            $scope.config.SetConfig(newVal, 'offlineWhenClosed');
+            $scope.config.SetConfig('offlineWhenClosed', newVal);
         });
 
 
@@ -573,6 +472,41 @@ function Main(){
         $scope.SetupAJAXHandler(XMLHttpRequest.prototype.open);
         $scope.SetupTimer();
         $scope.Unload();
+    }]);
+
+    //Directive defining the copy/paste dropdown element and action
+    statusesApp.directive('copyPasteConfigBtn',['Config', 'Statuses', function(config, statuses){
+        var link = function(scope, element, attrs){
+            element.bind('click', function(){
+                var oldConfig = LZString.compressToBase64(angular.toJson(config.configData));
+                var newConfig = window.prompt('Copy this config or paste another config here', oldConfig);
+                if(newConfig !== null && oldConfig !== newConfig && newConfig !== '' && newConfig !== '{}'){
+                    try{
+                        var configObject = JSON.parse(LZString.decompressFromBase64(newConfig));
+                        for(var property in configObject){
+                            if(configObject.hasOwnProperty(property)){
+                                config.SetConfig(property, configObject[property]);
+                            }
+                        }
+                        config.InitializeConfig();
+                        statuses.ResetStatuses(App.Vars.company.attributes.custom_status);
+                    } catch(e) {
+                        console.error("Invalid JSON For Config: " + e);
+                        console.error(LZString.decompressFromBase64(newConfig));
+                    }
+                } else if(newConfig === '{}') {
+                    config.ClearConfig();
+                    config.InitializeConfig();
+                    statuses.ResetStatuses(App.Vars.company.attributes.custom_status);
+                }
+            });
+        };
+        return{
+            link: link,
+            restrict: 'AE',
+            replace: true,
+            template: '<div style="text-align: center;"><div class="btn btn-success" style="margin-top:3px;">Copy/Paste Config</div></div>'
+        };
     }]);
 
     //Directive defining a user status dropdown template
