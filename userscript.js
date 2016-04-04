@@ -40,7 +40,14 @@ $(document).ready(function() {
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
 
-    window.setTimeout(Main, 5000);
+    //Wait for agents to be defined
+    (function f(){
+        if(typeof App.Vars.agents !== 'undefined'){
+            window.setTimeout(Main, 2500);
+        } else {
+            window.setTimeout(f, 250);
+        }
+    })();
 })();
 
 
@@ -255,7 +262,7 @@ function Main(){
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
-                                                   '</div></div><div class="btn btn-default" ng-click="Test()">Offline</div>');
+                                                   '</div></div>');
 
                 //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
@@ -434,6 +441,7 @@ function Main(){
 
         $scope.hideMatchingText = "";
         $scope.offlineWhenClosed = true;
+
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
 
@@ -473,38 +481,6 @@ function Main(){
             setInterval(function(){$scope.statuses.CalculateStatusTimes($scope.config.statusConfig); $scope.$apply();}, 500);
         };
 
-        $scope.Test = function(){
-                var agent = {};
-                angular.copy(App.Vars.agent.attributes, agent);
-                console.info(App.Vars.agent.attributes);
-                agent.user = {"status":"offline","status_change":true,"reason":null};
-                //agent.sip_enabled = false;
-                //agent.phone_enabled = false;
-                //agent.web_enabled = true;
-
-                //Can either send the entire agents info with the request or just the following, both seem to work
-
-                if($scope.offlineWhenClosed){
-                    $.ajax({
-                        url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
-                        type: 'PUT',
-                        headers: {
-                            'Accept':'application/json, text/javascript, */*; q=0.01',
-                            'Accept-Encoding':'gzip, deflate, sdch',
-                            'Accept-Language':'en-US,en;q=0.8',
-                            'Content-Type': 'application/json'
-                        },
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        crossDomain: true,
-                        timeout: 250,
-                        data: JSON.stringify(agent)
-                    });
-                }
-            return false;
-        };
-
         $scope.Unload = function(){
             $(window).unload(function(){
                 //var agent = {};
@@ -513,18 +489,13 @@ function Main(){
 
                 if($scope.offlineWhenClosed){
                     $.ajax({
-                        url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
+                        url: 'https://'+ window.location.hostname +'/users/' + $scope.users.currentUser.id,
                         type: 'PUT',
                         headers: {
                             'Accept':'application/json, text/javascript, */*; q=0.01',
-                            'Accept-Encoding':'gzip, deflate, sdch',
                             'Accept-Language':'en-US,en;q=0.8',
                             'Content-Type': 'application/json'
                         },
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        async: false,
                         timeout: 250,
                         data: '{"user":{"status":"offline","status_change":true,"reason":"automated"}}'
                     });
@@ -583,18 +554,13 @@ function Main(){
                 //angular.copy(App.Vars.agent.attributes, agent);
                 element.bind('click', function(){
                     $.ajax({
-                        url: 'https://doordash.mytalkdesk.com/users/' + userID,
+                        url: 'https://'+ window.location.hostname +'/users/' + userID,
                         type: 'PUT',
                         headers: {
                             'Accept':'application/json, text/javascript, */*; q=0.01',
-                            'Accept-Encoding':'gzip, deflate, sdch',
                             'Accept-Language':'en-US,en;q=0.8',
                             'Content-Type': 'application/json'
                         },
-                        xhrFields: {
-                            withCredentials: true
-                        },
-                        crossDomain: true,
                         timeout: 250,
                         data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":}}'
                     });
