@@ -23,6 +23,10 @@ $(document).ready(function() {
     script2.setAttribute("src", "https://cdn.rawgit.com/ROMB/jquery-dialogextend/master/build/jquery.dialogextend.min.js");
     document.body.appendChild(script2);
 
+    var lzString = document.createElement("script");
+    lzString.setAttribute("src", "https://cdn.rawgit.com/pieroxy/lz-string/master/libs/lz-string.min.js");
+    document.body.appendChild(lzString);
+
     var fontAwesome = document.createElement("link");
     fontAwesome.type = 'test/css';
     fontAwesome.setAttribute("rel", "stylesheet");
@@ -40,142 +44,15 @@ $(document).ready(function() {
     style.setAttribute("type", "text/css");
     document.body.appendChild(style);
 
-    window.setTimeout(Main, 5000);
+    //Wait for agents to be defined
+    (function f(){
+        if(typeof App.Vars.agents !== 'undefined'){
+            window.setTimeout(Main, 2500);
+        } else {
+            window.setTimeout(f, 250);
+        }
+    })();
 })();
-
-
-var config = {
-    statusConfig: {
-            'available':{
-                name:"Available",
-                id:"available",
-                color: true,
-                customGrouping: false,
-                groupBy: "available",
-                maxTime: 60
-            },
-            'after_call_work':{
-                name:"Followup",
-                id:"after_call_work",
-                color: true,
-                customGrouping: false,
-                groupBy: "after_call_work",
-                maxTime: 180
-            },
-            'busy_hq-shiftlead':{
-                name:"HQ Shift Lead",
-                id:"busy_hq-shiftlead",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_hq-shiftlead",
-                maxTime: -1
-            },
-            'busy_hq-mctexts':{
-                name:"HQ MC/Texts",
-                id:"busy_hq-mctexts",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_hq-mctexts",
-                maxTime: -1
-            },
-            'busy_dasherchat':{
-                name:"Dasher Chat",
-                id:"busy_dasherchat",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_dasherchat",
-                maxTime: -1
-            },
-            'busy_customeremails':{
-                name:"Customer Emails",
-                id:"busy_customeremails",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_customeremails",
-                maxTime: -1
-            },
-            'busy_dasheremails':{
-                name:"Dasher Emails",
-                id:"busy_dasheremails",
-                color: false,
-                customGrouping: false,
-                groupBy: "busy_dasheremails",
-                maxTime: -1
-            },
-            'busy':{
-                name:"On a Call",
-                id:"busy",
-                color: true,
-                customGrouping: false,
-                groupBy: "busy",
-                maxTime: 300
-            },
-            'away':{
-                name:"Login Prep",
-                id:"away",
-                color: true,
-                customGrouping: false,
-                groupBy: "away",
-                maxTime: 60
-            },
-            'away_break1':{
-                name:"Break 1",
-                id:"away_break",
-                color: true,
-                customGrouping: true,
-                groupBy: "Break",
-                maxTime: 1080
-            },
-            'away_break2':{
-                name:"Break 2",
-                id:"away_break",
-                color: true,
-                customGrouping: true,
-                groupBy: "Break",
-                maxTime: 1080
-            },
-            'away_break3':{
-                name:"Break 3",
-                id:"away_break",
-                color: true,
-                customGrouping: true,
-                groupBy: "Break",
-                maxTime: 1080
-            },
-            'away_lunch':{
-                name:"Lunch",
-                id: "away_lunch",
-                color: true,
-                customGrouping: false,
-                groupBy: "away_lunch",
-                maxTime: 2100
-            },
-            'away_nonbillable':{
-                name:"Non-Billable",
-                id:"away_nonbillable",
-                color: false,
-                customGrouping: false,
-                groupBy: "away_nonbillable",
-                maxTime: -1
-            },
-            'away_feedbackcoachingmeeting':{
-                name:"Feedback/Coaching/Meeting",
-                id: "away_feedbackcoachingmeeting",
-                color: false,
-                customGrouping: false,
-                groupBy: "away_feedbackcoachingmeeting",
-                maxTime: -1
-            },
-            'offline':{
-                name:"Offline",
-                id:"offline",
-                color: false,
-                customGrouping: false,
-                groupBy: "offline",
-                maxTime: -1
-            }
-    }
-};
 
 function Main(){
 
@@ -255,7 +132,7 @@ function Main(){
                                                                '</div>'+
                                                            '</div>'+
                                                        '<div>'+
-                                                   '</div></div>');
+                                                   '</div></div><copy-paste-config-btn />');
 
                 //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
@@ -294,12 +171,57 @@ function Main(){
                         slideOut.toggleClass('active');
 
                     });
-                    //$('.horizontalSlideOut').css('width', '0px').css('right', '0px').css('opacity', '0');
-                    //$('.horizontalSlideOut').removeClass('hidden');
                 }, 1000);
 
     //Primary Angular module
     var statusesApp = angular.module("statusesApp", []);
+
+    //Config and user settings factory
+    statusesApp.factory('Config', function(){
+        var config = {};
+        config.storage = localStorage;
+        config.configData = null;
+
+        //Gets the initial config data
+        config.InitializeConfig = function(){
+            var data = config.storage.getItem('talkdeskStatusesConfig');
+            if(data !== null){
+                config.configData = JSON.parse(LZString.decompressFromBase64(data));
+            }
+        };
+
+        //Gets the initial config data
+        config.GetConfig = function(key){
+            if(config.configData !== null){
+                if(config.configData.hasOwnProperty(key)){
+                    return config.configData[key];
+                }
+            }
+            return null;
+        };
+
+        //Sets the localstorage item
+        config.SetConfig = function(key, value){
+            if(config.configData !== null){
+                config.configData[key] = value;
+                config.storage.setItem('talkdeskStatusesConfig', LZString.compressToBase64(angular.toJson(config.configData)));
+            } else {
+                config.configData = {};
+                config.configData[key] = value;
+                config.storage.setItem('talkdeskStatusesConfig', LZString.compressToBase64(angular.toJson(config.configData)));
+            }
+        };
+
+        //Clears all config data
+        config.ClearConfig = function(){
+            if(config.configData !== null){
+                config.configData = null;
+                config.storage.removeItem('talkdeskStatusesConfig');
+            }
+        };
+
+        return config;
+    });
 
     //Factory managing the users themselves
     statusesApp.factory("Users", function(){
@@ -355,26 +277,50 @@ function Main(){
     });
 
     //Service managing everything status related
-    statusesApp.factory('Statuses',["Users", function(users){
+    statusesApp.factory('Statuses',["Users","Config", function(users, config){
         var statuses = {};
         statuses.selectedStatus = 'after_call_work';
         statuses.statusArray = [];
         statuses.statusHash = {};
 
         //Sets up the statuses based on the models statuses and the config
-        statuses.setStatuses = function(statusesObject, statusesConfig){
+        statuses.setStatuses = function(statusesObject){
             for(var status in statusesObject){
-                if(statusesConfig.hasOwnProperty(status)){
-                    var statusToPush = statusesConfig[status];
-                    statusToPush.id = status;                  //Necessary to use the real ID of the status instead of the config id
-                    statuses.statusArray.push(statusToPush);   //Pushing the config status instead of the defaults
-                    statuses.statusHash[status] = statusesConfig[status];
+                if(config.configData !== null){
+                    if(config.configData.statusConfig.hasOwnProperty(status)){
+                        var statusToPush = config.configData.statusConfig[status];
+                        statusToPush.id = status;
+                        statuses.statusArray.push(statusToPush);
+                        statuses.statusHash[status] = config.configData.statusConfig[status];
+                        continue;
+                    }
                 }
-                else{
-                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customGrouping: true, maxTime: -1});
-                    statuses.statusHash[status] = statusesObject[status];
+                var statusToPush = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
+                statuses.statusArray.push(statusToPush);
+                statuses.statusHash[status] = statusToPush;
+            }
+            config.SetConfig('statusConfig', statuses.statusHash);
+        };
+
+        //Called to reset the statuses when a new config is pasted in
+        statuses.ResetStatuses = function(statusesObject){
+            for(var status in statusesObject){
+                if(config.configData !== null){
+                    if(config.configData.statusConfig.hasOwnProperty(status)){
+                        var statusToPush = config.configData.statusConfig[status];
+                        statusToPush.id = status;
+                        for(let property in statusToPush){
+                            statuses.statusHash[status][property] = statusToPush[property];
+                        }
+                        continue;
+                    }
+                }
+                var statusToPush = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
+                for(let property in statusToPush){
+                    statuses.statusHash[status][property] = statusToPush[property];
                 }
             }
+            config.SetConfig('statusConfig', statuses.statusHash);
         };
 
         statuses.ProcessStatusChange = function(requestObject, type){
@@ -397,10 +343,10 @@ function Main(){
         };
 
         //Processes all users times, called periodically to regularly update
-        statuses.CalculateStatusTimes = function(statusConfig){
+        statuses.CalculateStatusTimes = function(){
             for(var user in users.usersHash){
             	if(users.usersHash.hasOwnProperty(user)){
-                    var timeData = statuses.CalculateStatusTime(statusConfig, user);
+                    var timeData = statuses.CalculateStatusTime(user);
 
 	                users.usersHash[user].timeInStatus = timeData.diff;
 	                users.usersHash[user].hue = timeData.hue;
@@ -410,30 +356,58 @@ function Main(){
         };
 
         //Calculates the time data for a single user
-        statuses.CalculateStatusTime = function(statusConfig, user){
+        statuses.CalculateStatusTime = function(user){
             var startMs = new Date(users.usersHash[user].timeChanged).getTime();
             var nowMs = new Date().getTime();
             var diff = (nowMs - startMs);
             var hue = 110;
-            var level = statusConfig[users.usersHash[user].currentStatus].color?'88%':'100%';
-            hue = Math.max(110 - Math.abs((diff/1000*(110/statusConfig[users.usersHash[user].currentStatus].maxTime))), 0);
+            var level = statuses.statusHash[users.usersHash[user].currentStatus].color?'88%':'100%';
+            hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusHash[users.usersHash[user].currentStatus].maxTime))), 0);
             return {diff: diff, hue: hue, level: level};
         };
         return statuses;
     }]);
 
     //Angular controller for the app
-    statusesApp.controller("statusesAppController", ["$scope", "Statuses", "Users", function($scope, Statuses, Users){
+    statusesApp.controller("statusesAppController", ["$scope", "$timeout", "Statuses", "Users", "Config", function($scope, $timeout, Statuses, Users, Config){
         $scope.statuses = Statuses;
         $scope.users = Users;
+        $scope.config = Config;
 
-        $scope.config = config;
-        $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status, $scope.config.statusConfig);
+        $scope.config.InitializeConfig();
+        $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status);
         $scope.users.SetAllUsers(App.Vars.agents.models);
         $scope.users.SetCurrentUser(App.Vars.agent);
 
-        $scope.hideMatchingText = "";
-        $scope.offlineWhenClosed = true;
+        $scope.hideMatchingText = $scope.config.GetConfig('hideMatchingText') === null ? '' : $scope.config.GetConfig('hideMatchingText');
+        $scope.offlineWhenClosed = $scope.config.GetConfig('offlineWhenClosed') === null ? true : $scope.config.GetConfig('offlineWhenClosed');
+
+        var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
+        var hideMatchingTimeout = $timeout(function(){}); // Debouncer timer for hideMatchingText
+
+        //Deep Watch statuses config for changes, write to localStorage on debounced change
+        $scope.$watch('statuses.statusHash', function(newVal, oldVal){
+            $timeout.cancel(statusesTimeout);
+            statusesTimeout = $timeout(function(){
+                $scope.config.SetConfig( 'statusConfig', $scope.statuses.statusHash);
+            }, 500);
+        }, true);
+
+        //Watch hideMatchingText config for changes, write to localStorage on debounced change
+        $scope.$watch('hideMatchingText', function(newVal, oldVal){
+            $timeout.cancel(statusesTimeout);
+            hideMatchingTimeout = $timeout(function(){
+                $scope.config.SetConfig('hideMatchingText', newVal);
+            }, 500);
+        });
+
+        //Watch offlineWhenClosed config for changes, write to localStorage on change
+        $scope.$watch('offlineWhenClosed', function(newVal, oldVal){
+            $scope.config.SetConfig('offlineWhenClosed', newVal);
+        });
+
+
+
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
 
@@ -470,7 +444,7 @@ function Main(){
 
         //Sets the timer for when times are recalcualted, 500ms at the moment
         $scope.SetupTimer = function(){
-            setInterval(function(){$scope.statuses.CalculateStatusTimes($scope.config.statusConfig); $scope.$apply();}, 500);
+            setInterval(function(){$scope.statuses.CalculateStatusTimes(); $scope.$apply();}, 500);
         };
 
         $scope.Unload = function(){
@@ -481,12 +455,13 @@ function Main(){
 
                 if($scope.offlineWhenClosed){
                     $.ajax({
-                        url: 'https://doordash.mytalkdesk.com/users/' + $scope.users.currentUser.id,
+                        url: 'https://'+ window.location.hostname +'/users/' + $scope.users.currentUser.id,
                         type: 'PUT',
                         headers: {
+                            'Accept':'application/json, text/javascript, */*; q=0.01',
+                            'Accept-Language':'en-US,en;q=0.8',
                             'Content-Type': 'application/json'
                         },
-                        async: false,
                         timeout: 250,
                         data: '{"user":{"status":"offline","status_change":true,"reason":"automated"}}'
                     });
@@ -497,6 +472,41 @@ function Main(){
         $scope.SetupAJAXHandler(XMLHttpRequest.prototype.open);
         $scope.SetupTimer();
         $scope.Unload();
+    }]);
+
+    //Directive defining the copy/paste dropdown element and action
+    statusesApp.directive('copyPasteConfigBtn',['Config', 'Statuses', function(config, statuses){
+        var link = function(scope, element, attrs){
+            element.bind('click', function(){
+                var oldConfig = LZString.compressToBase64(angular.toJson(config.configData));
+                var newConfig = window.prompt('Copy this config or paste another config here', oldConfig);
+                if(newConfig !== null && oldConfig !== newConfig && newConfig !== '' && newConfig !== '{}'){
+                    try{
+                        var configObject = JSON.parse(LZString.decompressFromBase64(newConfig));
+                        for(var property in configObject){
+                            if(configObject.hasOwnProperty(property)){
+                                config.SetConfig(property, configObject[property]);
+                            }
+                        }
+                        config.InitializeConfig();
+                        statuses.ResetStatuses(App.Vars.company.attributes.custom_status);
+                    } catch(e) {
+                        console.error("Invalid JSON For Config: " + e);
+                        console.error(LZString.decompressFromBase64(newConfig));
+                    }
+                } else if(newConfig === '{}') {
+                    config.ClearConfig();
+                    config.InitializeConfig();
+                    statuses.ResetStatuses(App.Vars.company.attributes.custom_status);
+                }
+            });
+        };
+        return{
+            link: link,
+            restrict: 'AE',
+            replace: true,
+            template: '<div style="text-align: center;"><div class="btn btn-success" style="margin-top:3px;">Copy/Paste Config</div></div>'
+        };
     }]);
 
     //Directive defining a user status dropdown template
@@ -542,16 +552,19 @@ function Main(){
             var statusID = attrs.statusid;
             if(typeof userID !== 'undefined' && typeof statusID !== 'undefined'){
                 element.bind('click', function(){
+                    var data = {user:{status:statusID, status_change:true, reason:null}};
                     $.ajax({
-                        url: 'https://doordash.mytalkdesk.com/users/' + userID,
+                        url: 'https://'+ window.location.hostname +'/users/' + userID,
                         type: 'PUT',
                         headers: {
+                            'Accept':'application/json, text/javascript, */*; q=0.01',
+                            'Accept-Language':'en-US,en;q=0.8',
                             'Content-Type': 'application/json'
                         },
-                        async: true,
                         timeout: 250,
-                        data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":"forced"}}'
+                        data: JSON.stringify(data)
                     });
+                    return true;
                 });
             }
         };
@@ -630,7 +643,6 @@ function Main(){
     //Filters out multiple values from a string using '|' as a delimiter
     statusesApp.filter('negativeSplitFilter', ['$filter', function($filter){
         return function(items, filterString){
-            console.info('Filter String: ' + filterString);
             if(filterString != ''){
                 var output = [];
                 var filterValues = filterString.split('|');
