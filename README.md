@@ -16,6 +16,8 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 * Can turn coloring off/on on a per status basis
 * Can configure how the coloring is applied based on the time in a pause state
 * Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection
+* Config is stored locally and will apply automatically when this script runs again on TalkDesk
+* Config data is shareable with other individuals
 
 **New Behavior:**
 * When TalkDesk is closed, it will put the user's status into `Offline`.
@@ -36,3 +38,6 @@ To filter multiple values, deliminate your text with a `|`. ie. `name1 | name2`
 You can combine several statuses into a single selection. Such as combining 'Break 1', 'Break 2', and 'Break 3' into a single 'Break' selection that will display all users under either of those three statuses.
 
 To do this, check the `Custom Status Matching` checkbox on the statuses you wish to group together. In each of the statuses you wish to group, type in the name that you wish to group them by in the `Custom Group` text box.
+
+#### Sharing Using and Clearing Config/Settings
+You can share your configuration with other users to make it easy to use the script across multiple devices. In the settings/config slide out, at the bottom there is a `Copy/Paste Config` button. If you click this button, you will see a prompt popup containing a compressed config string. To share, just copy it and send it to whomever. To use someone elses config, paste their config in the prompt to replace the existing one. To erase your config, type `{}`.
