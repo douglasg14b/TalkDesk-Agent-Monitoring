@@ -308,6 +308,35 @@ function Main(){
     //Primary Angular module
     var statusesApp = angular.module("statusesApp", []);
 
+    //Config and user settings factory
+    statusesApp.factory('Config', function(){
+        var config = {};
+        config.storage = localStorage;
+        config.configData = null;
+
+        //Gets the initial config data
+        config.GetConfig = function(){
+            var data = config.storage.getItem('talkdeskStatusesConfig');
+            if(data !== null){
+                config.configData = JSON.parse(data);
+            }
+        };
+
+        //Sets the localstorage item
+        config.SetConfig = function(data, type){
+            if(config.configData !== null){
+                config.configData[type] = data;
+                config.storage.setItem('talkdeskStatusesConfig', JSON.stringify(config.configData));
+            } else {
+                config.configData = {};
+                config.configData[type] = data;
+                config.storage.setItem('talkdeskStatusesConfig', JSON.stringify(config.configData));
+            }
+        };
+
+        return config;
+    });
+
     //Factory managing the users themselves
     statusesApp.factory("Users", function(){
         var users = {};
@@ -362,26 +391,39 @@ function Main(){
     });
 
     //Service managing everything status related
-    statusesApp.factory('Statuses',["Users", function(users){
+    statusesApp.factory('Statuses',["Users","Config", function(users, config){
         var statuses = {};
         statuses.selectedStatus = 'after_call_work';
         statuses.statusArray = [];
         statuses.statusHash = {};
 
         //Sets up the statuses based on the models statuses and the config
-        statuses.setStatuses = function(statusesObject, statusesConfig){
+        statuses.setStatuses = function(statusesObject){
             for(var status in statusesObject){
-                if(statusesConfig.hasOwnProperty(status)){
-                    var statusToPush = statusesConfig[status];
-                    statusToPush.id = status;                  //Necessary to use the real ID of the status instead of the config id
-                    statuses.statusArray.push(statusToPush);   //Pushing the config status instead of the defaults
-                    statuses.statusHash[status] = statusesConfig[status];
+                if(config.configData !== null){
+                    if(config.configData.statusConfig.hasOwnProperty(status)){
+                        var statusToPush = config.configData.statusConfig[status];
+                        statusToPush.id = status;
+                        statuses.statusArray.push(statusToPush);
+                        statuses.statusHash[status] = statusesConfig[status];
+                        continue;
+                    }
+                    /*
+                    if(statusesConfig.hasOwnProperty(status)){
+                        var statusToPush = statusesConfig[status];
+                        statusToPush.id = status;                  //Necessary to use the real ID of the status instead of the config id
+                        statuses.statusArray.push(statusToPush);   //Pushing the config status instead of the defaults
+                        statuses.statusHash[status] = statusesConfig[status];
+                    }
+                    else{
+                        statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customGrouping: true, maxTime: -1});
+                        statuses.statusHash[status] = statusesObject[status];
+                    }*/
                 }
-                else{
-                    statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customGrouping: true, maxTime: -1});
-                    statuses.statusHash[status] = statusesObject[status];
-                }
+                statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1});
+                statuses.statusHash[status] = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
             }
+            config.SetConfig(statuses.statusHash, 'statusConfig');
         };
 
         statuses.ProcessStatusChange = function(requestObject, type){
@@ -404,10 +446,10 @@ function Main(){
         };
 
         //Processes all users times, called periodically to regularly update
-        statuses.CalculateStatusTimes = function(statusConfig){
+        statuses.CalculateStatusTimes = function(){
             for(var user in users.usersHash){
             	if(users.usersHash.hasOwnProperty(user)){
-                    var timeData = statuses.CalculateStatusTime(statusConfig, user);
+                    var timeData = statuses.CalculateStatusTime(user);
 
 	                users.usersHash[user].timeInStatus = timeData.diff;
 	                users.usersHash[user].hue = timeData.hue;
@@ -417,30 +459,45 @@ function Main(){
         };
 
         //Calculates the time data for a single user
-        statuses.CalculateStatusTime = function(statusConfig, user){
+        statuses.CalculateStatusTime = function(user){
             var startMs = new Date(users.usersHash[user].timeChanged).getTime();
             var nowMs = new Date().getTime();
             var diff = (nowMs - startMs);
             var hue = 110;
-            var level = statusConfig[users.usersHash[user].currentStatus].color?'88%':'100%';
-            hue = Math.max(110 - Math.abs((diff/1000*(110/statusConfig[users.usersHash[user].currentStatus].maxTime))), 0);
+            var level = statuses.statusHash[users.usersHash[user].currentStatus].color?'88%':'100%';
+            hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusHash[users.usersHash[user].currentStatus].maxTime))), 0);
             return {diff: diff, hue: hue, level: level};
         };
         return statuses;
     }]);
 
     //Angular controller for the app
-    statusesApp.controller("statusesAppController", ["$scope", "Statuses", "Users", function($scope, Statuses, Users){
+    statusesApp.controller("statusesAppController", ["$scope", "$timeout", "Statuses", "Users", "Config", function($scope, $timeout, Statuses, Users, Config){
         $scope.statuses = Statuses;
         $scope.users = Users;
+        $scope.config = Config;
 
-        $scope.config = config;
-        $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status, $scope.config.statusConfig);
+        $scope.config.GetConfig();
+        $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status);
         $scope.users.SetAllUsers(App.Vars.agents.models);
         $scope.users.SetCurrentUser(App.Vars.agent);
 
         $scope.hideMatchingText = "";
         $scope.offlineWhenClosed = true;
+
+        var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
+
+        //Watch statuses config for changes, write to localStorage on change
+        $scope.$watch('statuses.statusHash', function(newVal, oldVal){
+            $timeout.cancel(statusesTimeout);
+            statusesTimeout = $timeout(function(){
+                console.info("Statuses changed debounced");
+            }, 500);
+        }, true);
+
+        $scope.$watch('offlineWhenClosed', function(newVal, oldVal){
+            console.info("offlineWhenClosed changed");
+        });
 
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
@@ -478,7 +535,7 @@ function Main(){
 
         //Sets the timer for when times are recalcualted, 500ms at the moment
         $scope.SetupTimer = function(){
-            setInterval(function(){$scope.statuses.CalculateStatusTimes($scope.config.statusConfig); $scope.$apply();}, 500);
+            setInterval(function(){$scope.statuses.CalculateStatusTimes(); $scope.$apply();}, 500);
         };
 
         $scope.Unload = function(){
@@ -550,9 +607,8 @@ function Main(){
             var userID = attrs.userid;
             var statusID = attrs.statusid;
             if(typeof userID !== 'undefined' && typeof statusID !== 'undefined'){
-                //var agent = {};
-                //angular.copy(App.Vars.agent.attributes, agent);
                 element.bind('click', function(){
+                    var data = {user:{status:statusID, status_change:true, reason:null}};
                     $.ajax({
                         url: 'https://'+ window.location.hostname +'/users/' + userID,
                         type: 'PUT',
@@ -562,9 +618,9 @@ function Main(){
                             'Content-Type': 'application/json'
                         },
                         timeout: 250,
-                        data: '{"user":{"status":"' + statusID + '","status_change":true,"reason":}}'
+                        data: JSON.stringify(data)
                     });
-                    return false;
+                    return true;
                 });
             }
         };
