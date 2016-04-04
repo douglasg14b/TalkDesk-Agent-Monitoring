@@ -301,8 +301,6 @@ function Main(){
                         slideOut.toggleClass('active');
 
                     });
-                    //$('.horizontalSlideOut').css('width', '0px').css('right', '0px').css('opacity', '0');
-                    //$('.horizontalSlideOut').removeClass('hidden');
                 }, 1000);
 
     //Primary Angular module
@@ -315,11 +313,21 @@ function Main(){
         config.configData = null;
 
         //Gets the initial config data
-        config.GetConfig = function(){
+        config.InitializeConfig = function(){
             var data = config.storage.getItem('talkdeskStatusesConfig');
             if(data !== null){
                 config.configData = JSON.parse(data);
             }
+        };
+
+        //Gets the initial config data
+        config.GetConfig = function(key){
+            if(config.configData !== null){
+                if(config.configData.hasOwnProperty(key)){
+                    return config.configData[key];
+                }
+            }
+            return null;
         };
 
         //Sets the localstorage item
@@ -405,23 +413,13 @@ function Main(){
                         var statusToPush = config.configData.statusConfig[status];
                         statusToPush.id = status;
                         statuses.statusArray.push(statusToPush);
-                        statuses.statusHash[status] = statusesConfig[status];
+                        statuses.statusHash[status] = config.configData.statusConfig[status];
                         continue;
                     }
-                    /*
-                    if(statusesConfig.hasOwnProperty(status)){
-                        var statusToPush = statusesConfig[status];
-                        statusToPush.id = status;                  //Necessary to use the real ID of the status instead of the config id
-                        statuses.statusArray.push(statusToPush);   //Pushing the config status instead of the defaults
-                        statuses.statusHash[status] = statusesConfig[status];
-                    }
-                    else{
-                        statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customGrouping: true, maxTime: -1});
-                        statuses.statusHash[status] = statusesObject[status];
-                    }*/
                 }
-                statuses.statusArray.push({name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1});
-                statuses.statusHash[status] = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
+                var statusToPush = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
+                statuses.statusArray.push(statusToPush);
+                statuses.statusHash[status] = statusToPush;
             }
             config.SetConfig(statuses.statusHash, 'statusConfig');
         };
@@ -477,27 +475,39 @@ function Main(){
         $scope.users = Users;
         $scope.config = Config;
 
-        $scope.config.GetConfig();
+        $scope.config.InitializeConfig();
         $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status);
         $scope.users.SetAllUsers(App.Vars.agents.models);
         $scope.users.SetCurrentUser(App.Vars.agent);
 
-        $scope.hideMatchingText = "";
-        $scope.offlineWhenClosed = true;
+        $scope.hideMatchingText = $scope.config.GetConfig('hideMatchingText') === null ? '' : $scope.config.GetConfig('hideMatchingText');
+        $scope.offlineWhenClosed = $scope.config.GetConfig('offlineWhenClosed') === null ? true : $scope.config.GetConfig('offlineWhenClosed');
 
         var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
+        var hideMatchingTimeout = $timeout(function(){}); // Debouncer timer for hideMatchingText
 
-        //Watch statuses config for changes, write to localStorage on change
+        //Watch statuses config for changes, write to localStorage on debounced change
         $scope.$watch('statuses.statusHash', function(newVal, oldVal){
             $timeout.cancel(statusesTimeout);
             statusesTimeout = $timeout(function(){
-                console.info("Statuses changed debounced");
+                $scope.config.SetConfig($scope.statuses.statusHash, 'statusConfig');
             }, 500);
         }, true);
 
+        //Watch hideMatchingText config for changes, write to localStorage on debounced change
+        $scope.$watch('hideMatchingText', function(newVal, oldVal){
+            $timeout.cancel(statusesTimeout);
+            hideMatchingTimeout = $timeout(function(){
+                $scope.config.SetConfig(newVal, 'hideMatchingText');
+            }, 500);
+        }, true);
+
+        //Watch offlineWhenClosed config for changes, write to localStorage on change
         $scope.$watch('offlineWhenClosed', function(newVal, oldVal){
-            console.info("offlineWhenClosed changed");
+            $scope.config.SetConfig(newVal, 'offlineWhenClosed');
         });
+
+
 
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
