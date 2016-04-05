@@ -69,6 +69,7 @@ function Main(){
                     '<thead>'+
                         '<tr>'+
                             '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
+                            '<th ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].id == \'busy\'" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Ring Group</th>'+
                             '<th ng-if="!users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Status</th>'+
                             '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time</th>'+
                         '</tr>'+
@@ -76,10 +77,12 @@ function Main(){
                     '<tbody>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : true | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
+                            '<td ng-if="statuses.statusHash[statuses.selectedStatus].id == \'busy\'">Ring Group</td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].groupBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
+                            '<td ng-if="statuses.statusHash[statuses.selectedStatus].id == \'busy\'">Ring Group</td>'+                
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="!users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})">'+
@@ -142,7 +145,7 @@ function Main(){
                                                                '</div>'+
                                                            '</div>'+
                                                            '<h2>Ring Groups</h2>'+
-                                                           '<div class="ringGroupsAccordion">'+
+                                                           '<div class="ringGroupsAccordion" style="width: auto;">'+
                                                                '<h3 ng-repeat-start="ringGroup in ringGroups.tagList">{{ringGroup.name}}</h3>'+
                                                                '<div ng-repeat-end>'+
                                                                   'ID: <span style="font-size: 0.9em;">{{ringGroup.id}}</span>'+
