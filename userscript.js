@@ -379,12 +379,14 @@ function Main(){
         statuses.setStatuses = function(statusesObject){
             for(var status in statusesObject){
                 if(config.configData !== null){
-                    if(config.configData.statusConfig.hasOwnProperty(status)){
-                        var statusToPush = config.configData.statusConfig[status];
-                        statusToPush.id = status;
-                        statuses.statusArray.push(statusToPush);
-                        statuses.statusHash[status] = config.configData.statusConfig[status];
-                        continue;
+                    if(typeof config.configData.statusConfig !== 'undefined'){
+                        if(config.configData.statusConfig.hasOwnProperty(status)){
+                            var statusToPush = config.configData.statusConfig[status];
+                            statusToPush.id = status;
+                            statuses.statusArray.push(statusToPush);
+                            statuses.statusHash[status] = config.configData.statusConfig[status];
+                            continue;
+                        }
                     }
                 }
                 var statusToPush = {name: statusesObject[status], id: status, color: false, customGrouping: false, groupBy:status, maxTime: -1};
