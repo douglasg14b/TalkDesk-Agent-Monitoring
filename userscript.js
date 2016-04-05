@@ -369,7 +369,7 @@ function Main(){
     }]);
 
     //Service managing everything status related
-    statusesApp.factory('Statuses',["Users","Config", function(users, config){
+    statusesApp.factory('Statuses',["Users","Config","ringGroups", function(users, config, ringGroups){
         var statuses = {};
         statuses.selectedStatus = 'after_call_work';
         statuses.statusArray = [];
@@ -457,8 +457,26 @@ function Main(){
             var diff = (nowMs - startMs);
             var hue = 110;
             var level = statuses.statusHash[users.usersHash[user].currentStatus].color?'88%':'100%';
-            hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusHash[users.usersHash[user].currentStatus].maxTime))), 0);
+            hue = statuses.CalculateHue(diff, statuses.statusHash[users.usersHash[user].currentStatus], users.usersHash[user]);
             return {diff: diff, hue: hue, level: level};
+        };
+
+        statuses.CalculateHue = function(diff, currentStatus, user){
+            if(currentStatus.id != 'busy'){
+                return Math.max(110 - Math.abs((diff/1000*(110/currentStatus.maxTime))), 0);
+            } else {
+                if(typeof user.ringGroups !== 'undefined'){
+                    if(user.ringGroups.length > 0){
+                        var maxTime = 0;
+                        for(var i = 0; i < user.ringGroups.length; i++){
+                            maxTime += ringGroups.tagHash[user.ringGroups[i]].maxTime;
+                        }
+                        maxTime = Math.round(maxTime/user.ringGroups.length);
+                        return Math.max(110 - Math.abs((diff/1000*(110/maxTime))), 0);
+                    }
+                }
+                return Math.max(110 - Math.abs((diff/1000*(110/currentStatus.maxTime))), 0);
+            }
         };
         return statuses;
     }]);
@@ -480,6 +498,7 @@ function Main(){
         $scope.offlineWhenClosed = $scope.config.GetConfig('offlineWhenClosed') === null ? true : $scope.config.GetConfig('offlineWhenClosed');
 
         var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
+        var ringGroupTimeout = $timeout(function(){}); // Debouncer timer for statuses
         var hideMatchingTimeout = $timeout(function(){}); // Debouncer timer for hideMatchingText
 
         //Deep Watch statuses config for changes, write to localStorage on debounced change
@@ -490,9 +509,17 @@ function Main(){
             }, 500);
         }, true);
 
+        //Deep Watch ringGroups config for changes, write to localStorage on debounced change
+        $scope.$watch('ringGroups.tagHash', function(newVal, oldVal){
+            $timeout.cancel(ringGroupTimeout);
+            ringGroupTimeout = $timeout(function(){
+                $scope.config.SetConfig( 'ringGroupsConfig', $scope.ringGroups.tagHash);
+            }, 500);
+        }, true);
+
         //Watch hideMatchingText config for changes, write to localStorage on debounced change
         $scope.$watch('hideMatchingText', function(newVal, oldVal){
-            $timeout.cancel(statusesTimeout);
+            $timeout.cancel(hideMatchingTimeout);
             hideMatchingTimeout = $timeout(function(){
                 $scope.config.SetConfig('hideMatchingText', newVal);
             }, 500);
