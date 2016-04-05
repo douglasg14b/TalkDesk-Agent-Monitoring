@@ -69,7 +69,7 @@ function Main(){
                     '<thead>'+
                         '<tr>'+
                             '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
-                            '<th ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].id == \'busy\'" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Ring Group</th>'+
+                            '<th ng-if="users.currentUser.canAccessAdmin && statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Ring Group</th>'+
                             '<th ng-if="!users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Status</th>'+
                             '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time</th>'+
                         '</tr>'+
@@ -77,12 +77,12 @@ function Main(){
                     '<tbody>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : true | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
-                            '<td ng-if="statuses.statusHash[statuses.selectedStatus].id == \'busy\'">Ring Group</td>'+
+                            '<td ng-if="statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup"><span style="font-size:0.9em;" ng-repeat="ringGroup in user.ringGroups" class="label label-info">{{ringGroup}}</span></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].groupBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
-                            '<td ng-if="statuses.statusHash[statuses.selectedStatus].id == \'busy\'">Ring Group</td>'+                
+                            '<td ng-if="statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup"><span style="font-size:0.9em;" ng-repeat="ringGroup in user.ringGroups" class="label label-info">{{ringGroup}}</span></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="!users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})">'+
@@ -124,6 +124,9 @@ function Main(){
                                                                '</h3>'+
                                                                '<div ng-repeat-end>'+
                                                                    'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
+                                                                   '<div ng-if="status.id == \'busy\'" class="checkbox">'+
+                                                                       '<label><input type="checkbox" ng-model="status.showRingGroup">Show Ring Groups</label>'+
+                                                                   '</div>'+
                                                                    '<div class="checkbox">'+
                                                                        '<label><input type="checkbox" ng-change="!status.customGrouping ? status.groupBy = status.id : null" ng-model="status.customGrouping">Custom Grouping</label>'+
                                                                    '</div>'+
@@ -315,6 +318,12 @@ function Main(){
             users.usersHash[userId].timeInStatus = 0;
         };
 
+        users.UpdateUsersCallRingGroup = function(userId, tags) {
+            if(typeof users.usersHash[userId] !== 'undefined'){
+                users.usersHash[userId].ringGroups = tags;
+            }
+        };
+
         return users;
     });
 
@@ -407,19 +416,22 @@ function Main(){
         };
 
         statuses.ProcessStatusChange = function(requestObject, type){
-            //If user exists in hash already
             if(type == 'userInfo'){
                 if(typeof users.usersHash[requestObject._id] !== 'undefined') {
                     if(users.usersHash[requestObject._id].currentStatus != requestObject.status){
                         users.UpdateUserStatus(requestObject._id, requestObject.status, requestObject.updated_at);
+                        users.UpdateUsersCallRingGroup(requestObject.user_id, []);
                     }
                 } else {
-                    users.NewUser(requestObject);
+                    users.NewUser(requestObject); //Should only be called if a user is added after the script is ran
                 }
             }else if(type == 'callInfo'){
                 if(typeof users.usersHash[requestObject.user_id] !== 'undefined') {
                     if(users.usersHash[requestObject.user_id].currentStatus != 'busy'){
                         users.UpdateUserStatus(requestObject.user_id, 'busy', requestObject.answered_at);
+                        users.UpdateUsersCallRingGroup(requestObject.user_id, requestObject.tags);
+                    } else {
+                        users.UpdateUsersCallRingGroup(requestObject.user_id, requestObject.tags); //If the user is already busy, but more info comes through, update ring groups
                     }
                 }
             }
