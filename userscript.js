@@ -36,9 +36,15 @@ $(document).ready(function() {
     style.type = 'text/css';
     style.appendChild(document.createTextNode('.ui-dialog{ border-radius:0px !important; } '+
                                               '.ui-dialog-titlebar-buttonpane a { background: #596C7D !important; border: 0px !important; margin: 0px 1px 0px 1px !important; }'+
-                                              '.statusSettingsAccordion h3.ui-accordion-header {white-space: nowrap; font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
-                                              '.statusSettingsAccordion div.ui-accordion-content { color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
-                                              '.statusSettingsAccordion > :first-child { margin-top:10px !important;}'+
+                                              '.statusSettingsAccordion {width: auto !important;}'+
+
+                                              '.allConfigsAccordian .statusSettingsAccordion h3.ui-accordion-header,  .allConfigsAccordian .ringGroupsAccordion h3.ui-accordion-header{white-space: nowrap; font-size: 1.3em; border: 0px; text-align:center; border-width: 1px 2px; border-style: solid; border-color: #272A2D; background: #303941; color: white; padding: 2px; margin: 0px;}'+
+                                              '.allConfigsAccordian .statusSettingsAccordion div.ui-accordion-content,  .allConfigsAccordian .ringGroupsAccordion  div.ui-accordion-content{ color: white; padding: 1em 1.8em; background: #5D676F; border-width: 1px 2px; border-style: solid; border-color: #272A2D;}'+
+
+                                              '.allConfigsAccordian h2.ui-accordion-header {white-space: nowrap; font-size: 1.5em; border: 0px; text-align:center; border-width: 2px 2px; border-style: solid; border-color: #272A2D; background: #303335; color: #1F90B1; padding: 2px; margin: 0px;}'+
+                                              '.allConfigsAccordian div.ui-accordion-content { color: white; padding: 2px; background: #303335; border-width: 2px; border-style: solid; border-color: #272A2D;}'+
+
+                                              //'.statusSettingsAccordion > :first-child { margin-top:10px !important;}'+
                                               '#statusTable tbody td {text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;}'
                                              ));
     style.setAttribute("type", "text/css");
@@ -63,6 +69,7 @@ function Main(){
                     '<thead>'+
                         '<tr>'+
                             '<th ng-if="users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Name</th>'+
+                            '<th ng-if="users.currentUser.canAccessAdmin && statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Ring Group</th>'+
                             '<th ng-if="!users.currentUser.canAccessAdmin" style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Status</th>'+
                             '<th style="border-radius: 0px; font-size: 110%; font-weight:600; text-align: center;">Time</th>'+
                         '</tr>'+
@@ -70,10 +77,12 @@ function Main(){
                     '<tbody>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : true | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
+                            '<td ng-if="statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup"><span style="font-size:0.9em;" ng-repeat="ringGroup in user.ringGroups" class="label label-info">{{ringGroup}}</span></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="users.currentUser.canAccessAdmin && statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].groupBy} : false | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
                             '<td><change-user-status-dropdown/></td>'+
+                            '<td ng-if="statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup"><span style="font-size:0.9em;" ng-repeat="ringGroup in user.ringGroups" class="label label-info">{{ringGroup}}</span></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
                         '</tr>'+
                         '<tr ng-if="!users.currentUser.canAccessAdmin" style="background: hsl({{user.hue}}, 100%, {{user.level}})">'+
@@ -107,33 +116,56 @@ function Main(){
                                                        '<div class="checkbox">'+
                                                            '<label style="color: white;"><input type="checkbox" ng-model="offlineWhenClosed">Auto Offline</label>'+
                                                        '</div>'+
-                                                       '<div class="statusSettingsAccordion">'+
-                                                           '<h3 ng-repeat-start="status in statuses.statusArray">'+
-                                                               '<span>{{status.name}}</span>'+
-                                                           '</h3>'+
-                                                           '<div ng-repeat-end>'+
-                                                               'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
-                                                               '<div class="checkbox">'+
-                                                                   '<label><input type="checkbox" ng-change="!status.customGrouping ? status.groupBy = status.id : null" ng-model="status.customGrouping">Custom Grouping</label>'+
-                                                               '</div>'+
-                                                               '<div ng-if="status.customGrouping">'+
-                                                                   '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Group Name</label>'+
-                                                                   '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.groupBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
-                                                               '</div>'+
-                                                               '<div class="checkbox">'+
-                                                                   '<label><input type="checkbox" ng-model="status.color">Color</label>'+
-                                                               '</div>'+
-                                                               '<div>'+
-                                                                   '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
-                                                                   '<input type="text" ng-model="status.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
-                                                               '</div>'+
-                                                               '<div ng-if="status.color">'+
-                                                                   '<label for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
-                                                                   '<input type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
+                                                       '<div class="allConfigsAccordian">'+ //Encapsulates the statuses
+                                                           '<h2>Statuses</h2>'+
+                                                           '<div class="statusSettingsAccordion">'+
+                                                               '<h3 ng-repeat-start="status in statuses.statusArray">'+
+                                                                   '<span>{{status.name}}</span>'+
+                                                               '</h3>'+
+                                                               '<div ng-repeat-end>'+
+                                                                   'ID: <span style="font-size: 0.9em;">{{status.id}}</span>'+
+                                                                   '<div ng-if="status.id == \'busy\'" class="checkbox">'+
+                                                                       '<label><input type="checkbox" ng-model="status.showRingGroup">Show Ring Groups</label>'+
+                                                                   '</div>'+
+                                                                   '<div class="checkbox">'+
+                                                                       '<label><input type="checkbox" ng-change="!status.customGrouping ? status.groupBy = status.id : null" ng-model="status.customGrouping">Custom Grouping</label>'+
+                                                                   '</div>'+
+                                                                   '<div ng-if="status.customGrouping">'+
+                                                                       '<label for="statusMatchBy{{status.id}}" style="white-space: nowrap;">Group Name</label>'+
+                                                                       '<input id="statusMatchBy{{status.id}}" type="text" ng-model="status.groupBy" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                                   '</div>'+
+                                                                   '<div class="checkbox">'+
+                                                                       '<label><input type="checkbox" ng-model="status.color">Color</label>'+
+                                                                   '</div>'+
+                                                                   '<div>'+
+                                                                       '<label for="statusName{{status.id}}" style="white-space: nowrap;">Display Name</label>'+
+                                                                       '<input type="text" ng-model="status.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                                   '</div>'+
+                                                                   '<div ng-if="status.color">'+
+                                                                       '<label for="hideMatching{{status.id}}" style="white-space: nowrap;">Highest {{status.name}} Permitted (s)</label>'+
+                                                                       '<input type="number" ng-model="status.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
+                                                                   '</div>'+
                                                                '</div>'+
                                                            '</div>'+
-                                                       '<div>'+
-                                                   '</div></div><copy-paste-config-btn />');
+                                                           '<h2>Ring Groups</h2>'+
+                                                           '<div class="ringGroupsAccordion" style="width: auto;">'+
+                                                               '<h3 ng-repeat-start="ringGroup in ringGroups.tagList">{{ringGroup.name}}</h3>'+
+                                                               '<div ng-repeat-end>'+
+                                                                  'ID: <span style="font-size: 0.9em;">{{ringGroup.id}}</span>'+
+                                                                   '<div>'+
+                                                                       '<label style="white-space: nowrap;">Tag Name</label>'+
+                                                                       '<input type="text" ng-model="ringGroup.name" style="width: 150px; padding: 2px 2px; box-shadow: none; margin: auto auto 10px 0px; font-family: Verdana, Arial, sans-serif; border: 0px; font-size: 1em;">'+
+                                                                   '</div>'+
+                                                                   '<div>'+
+                                                                       '<label style="white-space: nowrap;">Highest {{ringGroup.name}} Permitted (s)</label>'+
+                                                                       '<input type="number" ng-model="ringGroup.maxTime" id="hideMatching{{status.id}}" style="width: 75px; padding: 2px 2px;">'+
+                                                                   '</div>'+
+                                                               '<div>'+
+                                                           '</div>'+
+                                                       '</div>'+
+                                                   '</div>'+
+                                                   '</div>'+
+                                                   '<copy-paste-config-btn />');
 
                 //Appends the html for the settings button and statuses dropdown
                 $('#userStatuses').parent().append(
@@ -146,7 +178,19 @@ function Main(){
 
                 //Setup the config accordians and click event to toggle the configs
                 window.setTimeout(function(){
+                    $('.allConfigsAccordian').accordion({
+                        collapsible: true,
+                        active: false,
+                        icons: false,
+                        heightStyle: "content"
+                    });
                     $('.statusSettingsAccordion').accordion({
+                        collapsible: true,
+                        active: false,
+                        icons: false,
+                        heightStyle: "content"
+                    });
+                    $('.ringGroupsAccordion').accordion({
                         collapsible: true,
                         active: false,
                         icons: false,
@@ -164,8 +208,8 @@ function Main(){
                             }, 400);
                         } else {
                             slideOut.animate({
-                                width: '250',
-                                right: '-250',
+                                width: '275',
+                                right: '-275',
                                 opacity: '100'
                             }, 400);
                         }
@@ -191,7 +235,7 @@ function Main(){
             }
         };
 
-        //Gets the initial config data
+        //Gets a config by key
         config.GetConfig = function(key){
             if(config.configData !== null){
                 if(config.configData.hasOwnProperty(key)){
@@ -274,11 +318,58 @@ function Main(){
             users.usersHash[userId].timeInStatus = 0;
         };
 
+        users.UpdateUsersCallRingGroup = function(userId, tags) {
+            if(typeof users.usersHash[userId] !== 'undefined'){
+                users.usersHash[userId].ringGroups = tags;
+            }
+        };
+
         return users;
     });
 
+    //Services managing Ring Group information
+    statusesApp.factory('ringGroups',["Config", function(config){
+        var ringGroups = {};
+        ringGroups.tagList = [];
+        ringGroups.tagHash = {};
+
+        //Generates a list of tags from unique Ring Groups tags on users, initializes all tag related info
+        ringGroups.InitializeTags = function(usersArray){
+            var tagsArray = [];
+            var tagsHash = {};
+            var tagsConfig = config.GetConfig('ringGroupsConfig');
+            for(var  i = 0; i < usersArray.length; i++){
+                for(var ii = 0; ii < usersArray[i].attributes.tags.length; ii++){
+                    if(!tagsHash.hasOwnProperty(usersArray[i].attributes.tags[ii])){  //Only add the tag if it has not yet been added
+                        if(tagsConfig !== null){
+                            if(tagsConfig.hasOwnProperty(usersArray[i].attributes.tags[ii])){
+                                tagsArray.push(tagsConfig[usersArray[i].attributes.tags[ii]]);
+                                tagsHash[usersArray[i].attributes.tags[ii]] = tagsConfig[usersArray[i].attributes.tags[ii]];
+                                continue;
+                            }
+                        }
+                        var newTag = {
+                            name: usersArray[i].attributes.tags[ii],
+                            id: usersArray[i].attributes.tags[ii],
+                            maxTime: 200
+                                     };
+                        tagsArray.push(newTag);
+                        tagsHash[usersArray[i].attributes.tags[ii]] = newTag;
+                    }
+                }
+            }
+            config.SetConfig('ringGroupsConfig', tagsHash);
+            ringGroups.tagList =  tagsArray;
+            ringGroups.tagHash = tagsHash;
+            console.info(tagsHash);
+            console.info(config);
+        };
+
+        return ringGroups;
+    }]);
+
     //Service managing everything status related
-    statusesApp.factory('Statuses',["Users","Config", function(users, config){
+    statusesApp.factory('Statuses',["Users","Config","ringGroups", function(users, config, ringGroups){
         var statuses = {};
         statuses.selectedStatus = 'after_call_work';
         statuses.statusArray = [];
@@ -325,19 +416,22 @@ function Main(){
         };
 
         statuses.ProcessStatusChange = function(requestObject, type){
-            //If user exists in hash already
             if(type == 'userInfo'){
                 if(typeof users.usersHash[requestObject._id] !== 'undefined') {
                     if(users.usersHash[requestObject._id].currentStatus != requestObject.status){
                         users.UpdateUserStatus(requestObject._id, requestObject.status, requestObject.updated_at);
+                        users.UpdateUsersCallRingGroup(requestObject.user_id, []);
                     }
                 } else {
-                    users.NewUser(requestObject);
+                    users.NewUser(requestObject); //Should only be called if a user is added after the script is ran
                 }
             }else if(type == 'callInfo'){
                 if(typeof users.usersHash[requestObject.user_id] !== 'undefined') {
                     if(users.usersHash[requestObject.user_id].currentStatus != 'busy'){
                         users.UpdateUserStatus(requestObject.user_id, 'busy', requestObject.answered_at);
+                        users.UpdateUsersCallRingGroup(requestObject.user_id, requestObject.tags);
+                    } else {
+                        users.UpdateUsersCallRingGroup(requestObject.user_id, requestObject.tags); //If the user is already busy, but more info comes through, update ring groups
                     }
                 }
             }
@@ -363,19 +457,39 @@ function Main(){
             var diff = (nowMs - startMs);
             var hue = 110;
             var level = statuses.statusHash[users.usersHash[user].currentStatus].color?'88%':'100%';
-            hue = Math.max(110 - Math.abs((diff/1000*(110/statuses.statusHash[users.usersHash[user].currentStatus].maxTime))), 0);
+            hue = statuses.CalculateHue(diff, statuses.statusHash[users.usersHash[user].currentStatus], users.usersHash[user]);
             return {diff: diff, hue: hue, level: level};
+        };
+
+        statuses.CalculateHue = function(diff, currentStatus, user){
+            if(currentStatus.id != 'busy'){
+                return Math.max(110 - Math.abs((diff/1000*(110/currentStatus.maxTime))), 0);
+            } else {
+                if(typeof user.ringGroups !== 'undefined'){
+                    if(user.ringGroups.length > 0){
+                        var maxTime = 0;
+                        for(var i = 0; i < user.ringGroups.length; i++){
+                            maxTime += ringGroups.tagHash[user.ringGroups[i]].maxTime;
+                        }
+                        maxTime = Math.round(maxTime/user.ringGroups.length);
+                        return Math.max(110 - Math.abs((diff/1000*(110/maxTime))), 0);
+                    }
+                }
+                return Math.max(110 - Math.abs((diff/1000*(110/currentStatus.maxTime))), 0);
+            }
         };
         return statuses;
     }]);
 
     //Angular controller for the app
-    statusesApp.controller("statusesAppController", ["$scope", "$timeout", "Statuses", "Users", "Config", function($scope, $timeout, Statuses, Users, Config){
+    statusesApp.controller("statusesAppController", ["$scope", "$timeout", "Statuses", "Users", "Config", "ringGroups", function($scope, $timeout, Statuses, Users, Config, ringGroups){
         $scope.statuses = Statuses;
         $scope.users = Users;
         $scope.config = Config;
+        $scope.ringGroups = ringGroups;
 
         $scope.config.InitializeConfig();
+        $scope.ringGroups.InitializeTags(App.Vars.agents.models);
         $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status);
         $scope.users.SetAllUsers(App.Vars.agents.models);
         $scope.users.SetCurrentUser(App.Vars.agent);
@@ -384,6 +498,7 @@ function Main(){
         $scope.offlineWhenClosed = $scope.config.GetConfig('offlineWhenClosed') === null ? true : $scope.config.GetConfig('offlineWhenClosed');
 
         var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
+        var ringGroupTimeout = $timeout(function(){}); // Debouncer timer for statuses
         var hideMatchingTimeout = $timeout(function(){}); // Debouncer timer for hideMatchingText
 
         //Deep Watch statuses config for changes, write to localStorage on debounced change
@@ -394,9 +509,17 @@ function Main(){
             }, 500);
         }, true);
 
+        //Deep Watch ringGroups config for changes, write to localStorage on debounced change
+        $scope.$watch('ringGroups.tagHash', function(newVal, oldVal){
+            $timeout.cancel(ringGroupTimeout);
+            ringGroupTimeout = $timeout(function(){
+                $scope.config.SetConfig( 'ringGroupsConfig', $scope.ringGroups.tagHash);
+            }, 500);
+        }, true);
+
         //Watch hideMatchingText config for changes, write to localStorage on debounced change
         $scope.$watch('hideMatchingText', function(newVal, oldVal){
-            $timeout.cancel(statusesTimeout);
+            $timeout.cancel(hideMatchingTimeout);
             hideMatchingTimeout = $timeout(function(){
                 $scope.config.SetConfig('hideMatchingText', newVal);
             }, 500);
