@@ -44,6 +44,8 @@ $(document).ready(function() {
                                               '.allConfigsAccordian h2.ui-accordion-header {white-space: nowrap; font-size: 1.5em; border: 0px; text-align:center; border-width: 2px 2px; border-style: solid; border-color: #272A2D; background: #303335; color: #1F90B1; padding: 2px; margin: 0px;}'+
                                               '.allConfigsAccordian div.ui-accordion-content { color: white; padding: 2px; background: #303335; border-width: 2px; border-style: solid; border-color: #272A2D;}'+
 
+                                              '.error-message-container { background: rgba(0, 0, 0, 0.75); width: 100%; height: 100%; position: absolute;}'+
+                                              '.error-message { padding: 2em; font-size: 1.5em; color: #E21212; font-weight: 600;}'+
                                               //'.statusSettingsAccordion > :first-child { margin-top:10px !important;}'+
                                               '#statusTable tbody td {text-align: center; border-color:#dddddd; padding-top: 2px !important; padding-bottom:2px !important; height: auto;}'
                                              ));
@@ -53,7 +55,14 @@ $(document).ready(function() {
     //Wait for agents to be defined
     (function f(){
         if(typeof App.Vars.agents !== 'undefined'){
-            window.setTimeout(Main, 2500);
+            window.setTimeout(function(){
+                try{
+                    Main();
+                }catch(e){
+                    $('.error-message-container').removeClass('hidden');
+                    $('.error-message-container .error-message').html('An Error Has Occured: ' + e + '<br><br> Click to dismiss');
+                }
+            }, 2500);
         } else {
             window.setTimeout(f, 250);
         }
@@ -65,6 +74,7 @@ function Main(){
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
             '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customGrouping ? statuses.statusHash[statuses.selectedStatus].groupBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
+                '<div class="error-message-container hidden"><div class="error-message"></div></div>'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
                         '<tr>'+
@@ -195,6 +205,11 @@ function Main(){
                         active: false,
                         icons: false,
                         heightStyle: "content"
+                    });
+
+                    $('.error-message-container').click(function(){
+                        $(this).addClass('hidden');
+                        $('.error-message-container .error-message').html('');
                     });
 
                     $('.userStatusesSettingsBtn').click(function(){
@@ -417,6 +432,7 @@ function Main(){
             config.SetConfig('statusConfig', statuses.statusHash);
         };
 
+        //Handles the request from the AJAX handler
         statuses.ProcessStatusChange = function(requestObject, type){
             if(type == 'userInfo'){
                 if(typeof users.usersHash[requestObject._id] !== 'undefined') {
@@ -463,6 +479,7 @@ function Main(){
             return {diff: diff, hue: hue, level: level};
         };
 
+        //Calculates the hue for the user based on their current status and/or ring group
         statuses.CalculateHue = function(diff, currentStatus, user){
             if(currentStatus.id != 'busy'){
                 return Math.max(110 - Math.abs((diff/1000*(110/currentStatus.maxTime))), 0);
@@ -485,20 +502,31 @@ function Main(){
 
     //Angular controller for the app
     statusesApp.controller("statusesAppController", ["$scope", "$timeout", "Statuses", "Users", "Config", "ringGroups", function($scope, $timeout, Statuses, Users, Config, ringGroups){
+
+        /*==============================
+        Service and variable initilizations
+        ==============================*/
+        //Services assignment
         $scope.statuses = Statuses;
         $scope.users = Users;
         $scope.config = Config;
         $scope.ringGroups = ringGroups;
 
+        //Service Initilization
         $scope.config.InitializeConfig();
         $scope.ringGroups.InitializeTags(App.Vars.agents.models);
         $scope.statuses.setStatuses(App.Vars.company.attributes.custom_status);
         $scope.users.SetAllUsers(App.Vars.agents.models);
         $scope.users.SetCurrentUser(App.Vars.agent);
 
+        //Non-service variable initilization
         $scope.hideMatchingText = $scope.config.GetConfig('hideMatchingText') === null ? '' : $scope.config.GetConfig('hideMatchingText');
         $scope.offlineWhenClosed = $scope.config.GetConfig('offlineWhenClosed') === null ? true : $scope.config.GetConfig('offlineWhenClosed');
+        $scope.errors = []; //Unused
 
+        /*==============================
+           Variable watching for config
+        ==============================*/
         var statusesTimeout = $timeout(function(){}); // Debouncer timer for statuses
         var ringGroupTimeout = $timeout(function(){}); // Debouncer timer for statuses
         var hideMatchingTimeout = $timeout(function(){}); // Debouncer timer for hideMatchingText
@@ -533,7 +561,9 @@ function Main(){
         });
 
 
-
+        /*==============================
+              Controller Methods
+        ==============================*/
         //The handler for AJAX requests
         $scope.SetupAJAXHandler = function(open) {
 
@@ -548,17 +578,18 @@ function Main(){
                                 responseObject = JSON.parse(xmlResponseText);
                             }
                             catch(e) {
-                                console.error(e);
-                                console.error(xmlResponseText);
-                                console.error(xmlResponseText);
-                                console.error("JSON Parse Failed");
+                                console.error("An error occured during response parsing" + e);
                            }
-                            if(typeof responseObject._id != 'undefined'){
-                                if(typeof responseObject.status != 'undefined'){
-                                    $scope.statuses.ProcessStatusChange(responseObject, 'userInfo');
-                                }else if(typeof responseObject.callsid != 'undefined'){
-                                    $scope.statuses.ProcessStatusChange(responseObject, 'callInfo');
+                            try{
+                                if(typeof responseObject._id != 'undefined'){
+                                    if(typeof responseObject.status != 'undefined'){
+                                        $scope.statuses.ProcessStatusChange(responseObject, 'userInfo');
+                                    }else if(typeof responseObject.callsid != 'undefined'){
+                                        $scope.statuses.ProcessStatusChange(responseObject, 'callInfo');
+                                    }
                                 }
+                            } catch(e) {
+                                console.error("An error occured during request processing" + e);
                             }
                         }
                     }
