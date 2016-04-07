@@ -484,7 +484,7 @@ function Main(){
             if(currentStatus.id != 'busy'){
                 return Math.max(110 - Math.abs((diff/1000*(110/currentStatus.maxTime))), 0);
             } else {
-                if(typeof user.ringGroups !== 'undefined'){
+                if(typeof user.ringGroups !== 'undefined' && currentStatus.showRingGroup){
                     if(user.ringGroups.length > 0){
                         var maxTime = 0;
                         for(var i = 0; i < user.ringGroups.length; i++){
