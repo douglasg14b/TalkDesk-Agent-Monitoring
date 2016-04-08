@@ -15,7 +15,7 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 * Can filter your view based on an exclusionary filter that allows multiple OR like strings
 * Can turn coloring off/on on a per status basis
 * Can configure how the coloring is applied based on the time in a pause state
-* Can group certain statuses by way of fuzzy filtering. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection
+* Can assign statuses to group so they are combined under a single name. ie. Combining `Break 1`, `Break 2`, `Break 3` into a single `Break` selection
 * Config is stored locally and will apply automatically when this script runs again on TalkDesk
 * Config data is shareable with other individuals
 
