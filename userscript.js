@@ -3,10 +3,10 @@
 /*jshint multistr: true */
 
 // ==UserScript==
-// @name         TalkDesk Real Time Statuses 2
+// @name         TalkDesk Agent Monitoring
 // @namespace    http://tampermonkey.net/
-// @version      0.1
-// @description  realtime TalkDesk statuses
+// @version      0.2
+// @description  TalkDesk Agent Monitoring
 // @author       Douglas Gaskell
 // @match        https://*.mytalkdesk.com/*
 // @grant        none
