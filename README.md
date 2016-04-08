@@ -26,7 +26,7 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 #### Views
 If the user has access to the TalkDesk admin panel, they will be able to view the pause state of any user under your organization's account, they will also be able to filter their view as well as switch their view between any of the pause states created for their organizations account.
 
-If the user does not have admin panel access, they will only be able to see their own pause state and the time they have been in that state.
+If the user does not have admin panel access, they will only be able to see their own pause state and the time they have been in that state. (Untested after recent changes)
 
 
 #### Filtering
@@ -37,7 +37,7 @@ To filter multiple values, deliminate your text with a `|`. ie. `name1 | name2`
 #### Grouping Statuses
 You can combine several statuses into a single selection. Such as combining 'Break 1', 'Break 2', and 'Break 3' into a single 'Break' selection that will display all users under either of those three statuses.
 
-To do this, check the `Custom Status Matching` checkbox on the statuses you wish to group together. In each of the statuses you wish to group, type in the name that you wish to group them by in the `Custom Group` text box.
+To do this, check the `Custom Grouping` checkbox on the statuses you wish to group together. In each of the statuses you wish to group, type in the name that you wish to group them by in the `Group Name` text box.
 
 #### Sharing Using and Clearing Config/Settings
 You can share your configuration with other users to make it easy to use the script across multiple devices. In the settings/config slide out, at the bottom there is a `Copy/Paste Config` button. If you click this button, you will see a prompt popup containing a compressed config string. To share, just copy it and send it to whomever. To use someone elses config, paste their config in the prompt to replace the existing one. To erase your config, type `{}`.
