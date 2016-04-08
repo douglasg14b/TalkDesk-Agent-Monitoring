@@ -20,7 +20,7 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 * Config data is shareable with other individuals
 
 **New Behavior:**
-* When TalkDesk is closed, it will put the user's status into `Offline`.
+* When TalkDesk is closed, it will put the user's status into `Offline`. This is toggleable.
 * Can change the status of users right from the widget instead of having to navigating to the admin panel
 
 #### Views
