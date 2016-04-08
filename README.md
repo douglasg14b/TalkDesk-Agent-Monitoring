@@ -2,7 +2,7 @@
 
 This project aims to supplement some of the shortcomings of TalkDesk, such as displaying real time status timers or changing users statuses to offline when they close their browser.
 
-**Using:** Just copy/paste the UserScript.js contents into your chrome console. Alternatively you can paste it into a TamperMonkey script and it will run automatically run whenever you navigate to TalkDesk.
+**Using:** Just copy/paste the UserScript.js contents into your chrome console. Alternatively you can paste it into a TamperMonkey script and it will automatically run whenever you navigate to TalkDesk.
 
 ##Features
 
