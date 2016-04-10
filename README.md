@@ -4,6 +4,8 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 
 **Using:** Just copy/paste the UserScript.js contents into your chrome console. Alternatively you can paste it into a TamperMonkey script and it will automatically run whenever you navigate to TalkDesk.
 
+Screenshots: http://imgur.com/a/Wk4G5
+
 ##Features
 
 **Display:**
