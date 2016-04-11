@@ -73,7 +73,7 @@ function Main(){
 
             //All the HTML that needs to be inserted into the DOM
             $('body').prepend(
-            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customGrouping ? statuses.statusHash[statuses.selectedStatus].groupBy : statuses.statusHash[statuses.selectedStatus].name : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
+            '<div id="userStatuses" title="{{users.currentUser.canAccessAdmin ? statuses.statusHash[statuses.selectedStatus].customGrouping ? statuses.statusHash[statuses.selectedStatus].groupBy : filterResults.length  + \' \' + statuses.statusHash[statuses.selectedStatus].name  : statuses.statusHash[users.usersHash[users.currentUser.id].currentStatus].name}} {{users.currentUser.canAccessAdmin ? \'Timers\' : \'Timer\'}}" style="overflow-y:auto;">'+
                 '<div class="error-message-container hidden"><div class="error-message"></div></div>'+
                 '<table id="statusTable" class="table table-bordered table-condensed" style="border-radius: 0px; text-align:center;">'+
                     '<thead>'+
@@ -85,7 +85,7 @@ function Main(){
                         '</tr>'+
                     '</thead>'+
                     '<tbody>'+
-                        '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : true | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true">'+
+                        '<tr ng-if="users.currentUser.canAccessAdmin && !statuses.statusHash[statuses.selectedStatus].customGrouping" style="background: hsl({{user.hue}}, 100%, {{user.level}})" ng-repeat="user in filterResults = (users.usersHash | toArray | filter:{currentStatus: statuses.statusHash[statuses.selectedStatus].id} : true | negativeSplitFilter: hideMatchingText | orderBy: ' + "'" + 'timeInStatus' + "'" +':true)">'+
                             '<td><change-user-status-dropdown/></td>'+
                             '<td ng-if="statuses.selectedStatus == \'busy\' && statuses.statusHash[\'busy\'].showRingGroup"><span style="font-size:0.9em;" ng-repeat="ringGroup in user.ringGroups" class="label label-info">{{ringGroup}}</span></td>'+
                             '<td>{{user.timeInStatus | date: "H:mm:ss": "UTC"}}</td>'+
@@ -523,6 +523,7 @@ function Main(){
         $scope.hideMatchingText = $scope.config.GetConfig('hideMatchingText') === null ? '' : $scope.config.GetConfig('hideMatchingText');
         $scope.offlineWhenClosed = $scope.config.GetConfig('offlineWhenClosed') === null ? true : $scope.config.GetConfig('offlineWhenClosed');
         $scope.errors = []; //Unused
+        $scope.currentUserCount = 0; //User count for selected status
 
         /*==============================
            Variable watching for config
