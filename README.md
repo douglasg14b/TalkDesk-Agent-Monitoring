@@ -8,7 +8,7 @@ This project aims to supplement some of the shortcomings of TalkDesk, such as di
 ![image](https://user-images.githubusercontent.com/1400380/103045469-73039880-4539-11eb-91cf-90263580acc4.png)
 
 
-##Features
+## Features
 
 **Display:**
 * Displays real time status timers
